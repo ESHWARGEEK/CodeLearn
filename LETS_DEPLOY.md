@@ -18,6 +18,7 @@ Before starting, ensure you have:
 - [ ] Vercel account (free tier is fine)
 
 **Verify AWS setup:**
+
 ```bash
 aws sts get-caller-identity
 cdk --version
@@ -28,11 +29,13 @@ node --version
 
 ## 🚀 Phase 1: Deploy AWS Infrastructure (15 minutes)
 
-### Step 1: Navigate to infrastructure directory
+### Step 1: Navigate to codelearn directory
 
 ```bash
-cd codelearn/infrastructure
+cd codelearn
 ```
+
+**Important:** CDK commands must be run from the `codelearn/` directory (where `cdk.json` is located), NOT from the `infrastructure/` subdirectory.
 
 ### Step 2: Install dependencies
 
@@ -46,7 +49,12 @@ npm install
 npx cdk synth
 ```
 
-This generates templates without deploying. Review the output.
+This should show:
+
+```
+Successfully synthesized to D:\Vibe_coding\codelearn\cdk.out
+Supply a stack id (CodeLearn-Database-dev, CodeLearn-Storage-dev, CodeLearn-Auth-dev, CodeLearn-Queue-dev) to display its template.
+```
 
 ### Step 4: Deploy to AWS
 
@@ -54,7 +62,15 @@ This generates templates without deploying. Review the output.
 npx cdk deploy --all
 ```
 
+**This will deploy 4 stacks:**
+
+- CodeLearn-Database-dev (DynamoDB tables)
+- CodeLearn-Storage-dev (S3 buckets)
+- CodeLearn-Auth-dev (Cognito)
+- CodeLearn-Queue-dev (SQS queues)
+
 **Important:** Save all output values! You'll need:
+
 - UserPoolId
 - UserPoolClientId
 - UserPoolDomain
@@ -65,7 +81,7 @@ npx cdk deploy --all
 ### Step 5: Extract outputs automatically
 
 ```bash
-cd ..  # Return to codelearn directory
+# You're already in codelearn/ directory
 
 # Windows PowerShell:
 .\scripts\update-env-from-cdk.ps1
@@ -105,6 +121,7 @@ vercel --prod
 ```
 
 **Answer the prompts:**
+
 - Set up and deploy? **Y**
 - Which scope? Select your account
 - Link to existing project? **N**
@@ -115,6 +132,7 @@ vercel --prod
 ### Step 4: Save your production URL
 
 Vercel will output:
+
 ```
 ✅ Production: https://codelearn-abc123.vercel.app
 ```
@@ -148,6 +166,7 @@ Navigate to: **Settings** → **Environment Variables**
 Copy values from `.env.cdk-outputs` and add them one by one:
 
 **AWS Configuration:**
+
 ```
 AWS_REGION = us-east-1
 AWS_ACCESS_KEY_ID = (your AWS access key)
@@ -155,6 +174,7 @@ AWS_SECRET_ACCESS_KEY = (your AWS secret key)
 ```
 
 **AWS Cognito:**
+
 ```
 NEXT_PUBLIC_COGNITO_USER_POOL_ID = (from .env.cdk-outputs)
 NEXT_PUBLIC_COGNITO_CLIENT_ID = (from .env.cdk-outputs)
@@ -163,6 +183,7 @@ COGNITO_USER_POOL_DOMAIN = (from .env.cdk-outputs)
 ```
 
 **AWS Bedrock:**
+
 ```
 BEDROCK_MODEL_CLAUDE = anthropic.claude-3-5-sonnet-20240620-v1:0
 BEDROCK_MODEL_LLAMA = meta.llama3-1-70b-instruct-v1:0
@@ -171,6 +192,7 @@ BEDROCK_MODEL_LLAMA = meta.llama3-1-70b-instruct-v1:0
 **DynamoDB, S3, SQS:** (copy from .env.cdk-outputs)
 
 **Application Settings:**
+
 ```
 NEXT_PUBLIC_APP_URL = https://codelearn-abc123.vercel.app (YOUR Vercel URL)
 NODE_ENV = production
@@ -211,6 +233,7 @@ Authorization callback URL: https://codelearn-dev-abc123.auth.us-east-1.amazonco
 - Copy **Client Secret** (shown only once!)
 
 Write them down:
+
 ```
 GitHub Client ID: _________________________________
 GitHub Client Secret: _________________________________
@@ -274,6 +297,7 @@ Open: https://console.cloud.google.com/
 - Copy **Client Secret**
 
 Write them down:
+
 ```
 Google Client ID: _________________________________
 Google Client Secret: _________________________________
@@ -393,6 +417,7 @@ Should show GitHub and Google providers.
 ### Visit your app
 
 Open your Vercel URL in a browser:
+
 ```
 https://codelearn-abc123.vercel.app
 ```
@@ -406,6 +431,7 @@ Verify the homepage loads without errors.
 ## 🎉 Deployment Complete!
 
 You now have:
+
 - ✅ AWS infrastructure deployed
 - ✅ Next.js app on Vercel
 - ✅ OAuth configured with production URL
@@ -438,12 +464,15 @@ Cognito Client ID: __________________________
 ## 🆘 Troubleshooting
 
 **Issue:** CDK deploy fails
+
 - **Solution:** Check AWS credentials: `aws sts get-caller-identity`
 
 **Issue:** Vercel deploy fails
+
 - **Solution:** Test build locally: `npm run build`
 
 **Issue:** OAuth callback URL mismatch
+
 - **Solution:** Verify URLs match exactly in GitHub/Google and Cognito
 
 ---
@@ -453,4 +482,3 @@ Cognito Client ID: __________________________
 **Time taken:** ~60 minutes
 
 **Next:** Start implementing Task 3 - Authentication System
-

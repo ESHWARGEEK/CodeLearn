@@ -11,10 +11,9 @@ Deploy to Vercel first → Get production URL → Configure OAuth once!
 ### 1️⃣ Deploy AWS Infrastructure (15 min)
 
 ```bash
-cd codelearn/infrastructure
+cd codelearn
 npm install
 npx cdk deploy --all
-cd ..
 .\scripts\update-env-from-cdk.ps1  # Save outputs
 ```
 
@@ -132,6 +131,7 @@ aws cognito-idp list-identity-providers --user-pool-id YOUR-USER-POOL-ID
 ## ✅ Done!
 
 You now have:
+
 - ✅ AWS infrastructure deployed
 - ✅ Next.js app on Vercel
 - ✅ OAuth configured with production URL
@@ -157,4 +157,3 @@ You now have:
 ---
 
 **Let's go!** 🚀
-

@@ -13,8 +13,8 @@ This workflow ensures you only configure OAuth providers once by deploying to Ve
 **What:** Create AWS resources (DynamoDB, S3, Cognito, SQS)
 
 ```bash
-# 1. Navigate to infrastructure
-cd codelearn/infrastructure
+# 1. Navigate to codelearn directory (where cdk.json is)
+cd codelearn
 
 # 2. Install dependencies
 npm install
@@ -23,13 +23,13 @@ npm install
 npx cdk deploy --all
 
 # 4. Save CDK outputs
-cd ..
 .\scripts\update-env-from-cdk.ps1  # Windows
 # OR
 ./scripts/update-env-from-cdk.sh   # macOS/Linux
 ```
 
 **Output:** You'll get:
+
 - Cognito User Pool ID
 - Cognito Client ID
 - Cognito Domain URL (e.g., `https://codelearn-dev-abc123.auth.us-east-1.amazoncognito.com`)
@@ -58,11 +58,13 @@ vercel --prod
 ```
 
 **Follow prompts:**
+
 - Project name: `codelearn`
 - Directory: `./`
 - Override settings: `N`
 
 **Output:** You'll get your production URL:
+
 ```
 ✅ Production: https://codelearn-abc123.vercel.app
 ```
@@ -138,6 +140,7 @@ Authorization callback URL: https://codelearn-dev-abc123.auth.us-east-1.amazonco
 ```
 
 **Replace:**
+
 - `codelearn-abc123.vercel.app` with YOUR Vercel URL
 - `codelearn-dev-abc123` with YOUR Cognito domain
 
@@ -275,23 +278,27 @@ aws cognito-idp list-identity-providers \
 ## 📊 Summary: What You Have Now
 
 ✅ **AWS Infrastructure:**
+
 - 6 DynamoDB tables
 - 3 S3 buckets
 - Cognito User Pool with OAuth providers
 - 2 SQS queues
 
 ✅ **Vercel Deployment:**
+
 - Production URL: `https://codelearn-abc123.vercel.app`
 - All environment variables configured
 - OAuth credentials added
 
 ✅ **OAuth Configuration:**
+
 - GitHub OAuth app configured with production URL
 - Google OAuth credentials configured with production URL
 - Both providers added to Cognito
 - Callback URLs pointing to production
 
 ✅ **Ready for Development:**
+
 - Start Task 3: Authentication System Implementation
 - OAuth will work immediately when implemented
 - No need to reconfigure anything!
@@ -357,4 +364,3 @@ After completing all phases:
 **Total Time:** ~60 minutes
 
 **Result:** Production-ready deployment with OAuth configured once! 🎉
-

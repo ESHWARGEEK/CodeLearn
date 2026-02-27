@@ -49,8 +49,8 @@ This task has comprehensive documentation to guide you:
 ### Step 1: Deploy AWS Infrastructure
 
 ```bash
-# Navigate to infrastructure directory
-cd codelearn/infrastructure
+# Navigate to codelearn directory (where cdk.json is located)
+cd codelearn
 
 # Install dependencies
 npm install
@@ -65,6 +65,7 @@ npx cdk deploy --all
 ```
 
 **Expected Output:**
+
 ```
 ✅ CodeLearnStack
 
@@ -80,14 +81,16 @@ CodeLearnStack.UserPoolDomain = https://codelearn-dev-abc123.auth.us-east-1.amaz
 Use the provided script to extract all CDK outputs:
 
 **On Windows (PowerShell):**
+
 ```powershell
-cd ..  # Return to codelearn directory
+# You're already in codelearn directory
 .\scripts\update-env-from-cdk.ps1
 ```
 
 **On macOS/Linux (Bash):**
+
 ```bash
-cd ..  # Return to codelearn directory
+# You're already in codelearn directory
 chmod +x scripts/update-env-from-cdk.sh
 ./scripts/update-env-from-cdk.sh
 ```
@@ -99,6 +102,7 @@ This creates `.env.cdk-outputs` with all AWS resource IDs.
 Follow the detailed guide in **OAUTH_SETUP_GUIDE.md**:
 
 **GitHub OAuth:**
+
 1. Go to https://github.com/settings/developers
 2. Create new OAuth App
 3. Set callback URL: `https://YOUR-COGNITO-DOMAIN.auth.us-east-1.amazoncognito.com/oauth2/idpresponse`
@@ -106,6 +110,7 @@ Follow the detailed guide in **OAUTH_SETUP_GUIDE.md**:
 5. Create Personal Access Token with `repo` and `read:user` scopes
 
 **Google OAuth:**
+
 1. Go to https://console.cloud.google.com/
 2. Create new project or select existing
 3. Configure OAuth consent screen
@@ -237,6 +242,7 @@ Task 2.7 is complete when:
 After deployment, you'll have:
 
 **DynamoDB Tables (6):**
+
 - `codelearn-users-dev`
 - `codelearn-projects-dev`
 - `codelearn-learning-paths-dev`
@@ -245,17 +251,20 @@ After deployment, you'll have:
 - `codelearn-integrations-dev`
 
 **S3 Buckets (3):**
+
 - `codelearn-user-projects-dev`
 - `codelearn-templates-dev`
 - `codelearn-assets-dev`
 
 **Cognito:**
+
 - User Pool with email/password authentication
 - User Pool Client for web application
 - Identity Pool for federated identities
 - OAuth providers (GitHub, Google)
 
 **SQS Queues (2):**
+
 - `codelearn-ai-jobs-queue-dev`
 - `codelearn-ai-jobs-dlq-dev`
 
@@ -264,6 +273,7 @@ After deployment, you'll have:
 ## 💰 Cost Estimate
 
 **Development Environment:**
+
 - DynamoDB: ~$5/month (on-demand, minimal usage)
 - S3: ~$2/month (< 10GB storage)
 - Cognito: Free tier (< 50,000 MAU)
@@ -281,6 +291,7 @@ All services have free tier coverage for development!
 **Issue:** "No credentials" or "Access Denied"
 
 **Solution:**
+
 ```bash
 # Verify AWS credentials
 aws sts get-caller-identity
@@ -294,6 +305,7 @@ aws configure
 **Issue:** "Redirect URI mismatch" error during OAuth
 
 **Solution:**
+
 1. Get exact Cognito domain from CDK output
 2. Update callback URL in GitHub/Google OAuth app
 3. Format: `https://YOUR-DOMAIN.auth.REGION.amazoncognito.com/oauth2/idpresponse`
@@ -303,6 +315,7 @@ aws configure
 **Issue:** CDK deploy fails with "Stack already exists"
 
 **Solution:**
+
 ```bash
 # Update existing stack
 npx cdk deploy --all --force
@@ -313,6 +326,7 @@ npx cdk deploy --all --force
 **Issue:** "AccessDeniedException" when testing DynamoDB
 
 **Solution:**
+
 ```bash
 # Check IAM permissions
 aws iam get-user
@@ -352,4 +366,3 @@ After completing Task 2.7:
 ---
 
 **Ready to deploy? Follow the checklist in TASK_2.7_CHECKLIST.md!** 🚀
-
