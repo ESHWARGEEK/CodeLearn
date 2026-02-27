@@ -1,0 +1,404 @@
+{
+ "Description": "DynamoDB tables for CodeLearn platform",
+ "Resources": {
+  "UsersTable9725E9C8": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "PK",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "SK",
+      "AttributeType": "S"
+     }
+    ],
+    "KeySchema": [
+     {
+      "AttributeName": "PK",
+      "KeyType": "HASH"
+     },
+     {
+      "AttributeName": "SK",
+      "KeyType": "RANGE"
+     }
+    ],
+    "ProvisionedThroughput": {
+     "ReadCapacityUnits": 5,
+     "WriteCapacityUnits": 5
+    },
+    "TableName": "codelearn-users-dev"
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Database-dev/UsersTable/Resource"
+   }
+  },
+  "ProjectsTableAA0A2089": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "PK",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "SK",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "status",
+      "AttributeType": "S"
+     }
+    ],
+    "GlobalSecondaryIndexes": [
+     {
+      "IndexName": "userId-status-index",
+      "KeySchema": [
+       {
+        "AttributeName": "SK",
+        "KeyType": "HASH"
+       },
+       {
+        "AttributeName": "status",
+        "KeyType": "RANGE"
+       }
+      ],
+      "Projection": {
+       "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+       "ReadCapacityUnits": 5,
+       "WriteCapacityUnits": 5
+      }
+     }
+    ],
+    "KeySchema": [
+     {
+      "AttributeName": "PK",
+      "KeyType": "HASH"
+     },
+     {
+      "AttributeName": "SK",
+      "KeyType": "RANGE"
+     }
+    ],
+    "ProvisionedThroughput": {
+     "ReadCapacityUnits": 5,
+     "WriteCapacityUnits": 5
+    },
+    "TableName": "codelearn-projects-dev"
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Database-dev/ProjectsTable/Resource"
+   }
+  },
+  "LearningPathsTable2F8FB81D": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "PK",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "SK",
+      "AttributeType": "S"
+     }
+    ],
+    "KeySchema": [
+     {
+      "AttributeName": "PK",
+      "KeyType": "HASH"
+     },
+     {
+      "AttributeName": "SK",
+      "KeyType": "RANGE"
+     }
+    ],
+    "ProvisionedThroughput": {
+     "ReadCapacityUnits": 5,
+     "WriteCapacityUnits": 5
+    },
+    "TableName": "codelearn-learning-paths-dev",
+    "TimeToLiveSpecification": {
+     "AttributeName": "expiresAt",
+     "Enabled": true
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Database-dev/LearningPathsTable/Resource"
+   }
+  },
+  "TemplatesTable3F253039": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "PK",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "SK",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "technology",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "rating",
+      "AttributeType": "N"
+     }
+    ],
+    "GlobalSecondaryIndexes": [
+     {
+      "IndexName": "technology-rating-index",
+      "KeySchema": [
+       {
+        "AttributeName": "technology",
+        "KeyType": "HASH"
+       },
+       {
+        "AttributeName": "rating",
+        "KeyType": "RANGE"
+       }
+      ],
+      "Projection": {
+       "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+       "ReadCapacityUnits": 5,
+       "WriteCapacityUnits": 5
+      }
+     }
+    ],
+    "KeySchema": [
+     {
+      "AttributeName": "PK",
+      "KeyType": "HASH"
+     },
+     {
+      "AttributeName": "SK",
+      "KeyType": "RANGE"
+     }
+    ],
+    "ProvisionedThroughput": {
+     "ReadCapacityUnits": 5,
+     "WriteCapacityUnits": 5
+    },
+    "TableName": "codelearn-templates-dev"
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Database-dev/TemplatesTable/Resource"
+   }
+  },
+  "JobsTable1970BC16": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "PK",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "SK",
+      "AttributeType": "S"
+     }
+    ],
+    "KeySchema": [
+     {
+      "AttributeName": "PK",
+      "KeyType": "HASH"
+     },
+     {
+      "AttributeName": "SK",
+      "KeyType": "RANGE"
+     }
+    ],
+    "ProvisionedThroughput": {
+     "ReadCapacityUnits": 5,
+     "WriteCapacityUnits": 5
+    },
+    "TableName": "codelearn-jobs-dev",
+    "TimeToLiveSpecification": {
+     "AttributeName": "expiresAt",
+     "Enabled": true
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Database-dev/JobsTable/Resource"
+   }
+  },
+  "IntegrationsTable781EC78A": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "PK",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "SK",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "month",
+      "AttributeType": "S"
+     }
+    ],
+    "GlobalSecondaryIndexes": [
+     {
+      "IndexName": "userId-month-index",
+      "KeySchema": [
+       {
+        "AttributeName": "SK",
+        "KeyType": "HASH"
+       },
+       {
+        "AttributeName": "month",
+        "KeyType": "RANGE"
+       }
+      ],
+      "Projection": {
+       "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+       "ReadCapacityUnits": 5,
+       "WriteCapacityUnits": 5
+      }
+     }
+    ],
+    "KeySchema": [
+     {
+      "AttributeName": "PK",
+      "KeyType": "HASH"
+     },
+     {
+      "AttributeName": "SK",
+      "KeyType": "RANGE"
+     }
+    ],
+    "ProvisionedThroughput": {
+     "ReadCapacityUnits": 5,
+     "WriteCapacityUnits": 5
+    },
+    "TableName": "codelearn-integrations-dev"
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Database-dev/IntegrationsTable/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/yXISwqAIBRA0bU011dJraAFBNU8np/APho9TSLae1Cje7gCRFVAkWEirvTCVyvh7gOqhWGiUV8ON68l3APK1bBmch8e1hny8VDfamPYY3iY89rATPkpahBQZjNZy4/ogt0MdH9fPs0RfHEAAAA="
+   },
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Database-dev/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "UsersTableName": {
+   "Description": "Users table name",
+   "Value": {
+    "Ref": "UsersTable9725E9C8"
+   },
+   "Export": {
+    "Name": "codelearn-users-table-dev"
+   }
+  },
+  "ProjectsTableName": {
+   "Description": "Projects table name",
+   "Value": {
+    "Ref": "ProjectsTableAA0A2089"
+   },
+   "Export": {
+    "Name": "codelearn-projects-table-dev"
+   }
+  },
+  "LearningPathsTableName": {
+   "Description": "Learning paths table name",
+   "Value": {
+    "Ref": "LearningPathsTable2F8FB81D"
+   },
+   "Export": {
+    "Name": "codelearn-learning-paths-table-dev"
+   }
+  },
+  "TemplatesTableName": {
+   "Description": "Templates table name",
+   "Value": {
+    "Ref": "TemplatesTable3F253039"
+   },
+   "Export": {
+    "Name": "codelearn-templates-table-dev"
+   }
+  },
+  "JobsTableName": {
+   "Description": "Jobs table name",
+   "Value": {
+    "Ref": "JobsTable1970BC16"
+   },
+   "Export": {
+    "Name": "codelearn-jobs-table-dev"
+   }
+  },
+  "IntegrationsTableName": {
+   "Description": "Integrations table name",
+   "Value": {
+    "Ref": "IntegrationsTable781EC78A"
+   },
+   "Export": {
+    "Name": "codelearn-integrations-table-dev"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

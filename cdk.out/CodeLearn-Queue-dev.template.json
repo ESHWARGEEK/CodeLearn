@@ -1,0 +1,184 @@
+{
+ "Description": "SQS queues for async job processing",
+ "Resources": {
+  "AiJobsDlq0E620B9E": {
+   "Type": "AWS::SQS::Queue",
+   "Properties": {
+    "MessageRetentionPeriod": 345600,
+    "QueueName": "codelearn-ai-jobs-dlq-dev",
+    "SqsManagedSseEnabled": true
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Queue-dev/AiJobsDlq/Resource"
+   }
+  },
+  "AiJobsQueue6DBADF29": {
+   "Type": "AWS::SQS::Queue",
+   "Properties": {
+    "MessageRetentionPeriod": 345600,
+    "QueueName": "codelearn-ai-jobs-queue-dev",
+    "RedrivePolicy": {
+     "deadLetterTargetArn": {
+      "Fn::GetAtt": [
+       "AiJobsDlq0E620B9E",
+       "Arn"
+      ]
+     },
+     "maxReceiveCount": 3
+    },
+    "SqsManagedSseEnabled": true,
+    "VisibilityTimeout": 300
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Queue-dev/AiJobsQueue/Resource"
+   }
+  },
+  "QueueDepthAlarmD4A3A893": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "Alert when AI jobs queue depth exceeds 100 messages",
+    "AlarmName": "codelearn-queue-depth-dev",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "Dimensions": [
+     {
+      "Name": "QueueName",
+      "Value": {
+       "Fn::GetAtt": [
+        "AiJobsQueue6DBADF29",
+        "QueueName"
+       ]
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "ApproximateNumberOfMessagesVisible",
+    "Namespace": "AWS/SQS",
+    "Period": 300,
+    "Statistic": "Maximum",
+    "Threshold": 100
+   },
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Queue-dev/QueueDepthAlarm/Resource"
+   }
+  },
+  "DlqAlarmAA93C9B0": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmDescription": "Alert when messages appear in dead-letter queue",
+    "AlarmName": "codelearn-dlq-messages-dev",
+    "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+    "Dimensions": [
+     {
+      "Name": "QueueName",
+      "Value": {
+       "Fn::GetAtt": [
+        "AiJobsDlq0E620B9E",
+        "QueueName"
+       ]
+      }
+     }
+    ],
+    "EvaluationPeriods": 1,
+    "MetricName": "ApproximateNumberOfMessagesVisible",
+    "Namespace": "AWS/SQS",
+    "Period": 300,
+    "Statistic": "Maximum",
+    "Threshold": 1
+   },
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Queue-dev/DlqAlarm/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/yXJQQ7CIBBA0bN0D2Ml9QDGAxj1AGYKGGkprZ0ZWRDublpX/yXfgOlaaBvMpK0bdQw9lAejHRVmehb6EJSbePHq8ko7qrJxFpeR7RvKOeI6bW9HrRuvwotwVWl2HgY6fM0JDBybgULQqyQOk4f7vz9omIjzgQAAAA=="
+   },
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Queue-dev/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "AiJobsQueueUrl": {
+   "Description": "AI jobs queue URL",
+   "Value": {
+    "Ref": "AiJobsQueue6DBADF29"
+   },
+   "Export": {
+    "Name": "codelearn-ai-jobs-queue-url-dev"
+   }
+  },
+  "AiJobsQueueArn": {
+   "Description": "AI jobs queue ARN",
+   "Value": {
+    "Fn::GetAtt": [
+     "AiJobsQueue6DBADF29",
+     "Arn"
+    ]
+   },
+   "Export": {
+    "Name": "codelearn-ai-jobs-queue-arn-dev"
+   }
+  },
+  "AiJobsDlqUrl": {
+   "Description": "AI jobs DLQ URL",
+   "Value": {
+    "Ref": "AiJobsDlq0E620B9E"
+   },
+   "Export": {
+    "Name": "codelearn-ai-jobs-dlq-url-dev"
+   }
+  },
+  "AiJobsDlqArn": {
+   "Description": "AI jobs DLQ ARN",
+   "Value": {
+    "Fn::GetAtt": [
+     "AiJobsDlq0E620B9E",
+     "Arn"
+    ]
+   },
+   "Export": {
+    "Name": "codelearn-ai-jobs-dlq-arn-dev"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}
