@@ -1,16 +1,16 @@
 {
   "version": "50.0.0",
   "files": {
-    "b6e34a76f5c62722cbf8709ab2cefe9fe2dffcf9e1e45ad340f9358cf77268aa": {
+    "5a30fe7966a112479d9356ff210113fb2756984ef43884da9e5b55b1b78f8d44": {
       "displayName": "codelearn-database-dev Template",
       "source": {
         "path": "CodeLearn-Database-dev.template.json",
         "packaging": "file"
       },
       "destinations": {
-        "870631428381-us-east-1-2bc12fcc": {
+        "870631428381-us-east-1-aa601462": {
           "bucketName": "cdk-hnb659fds-assets-870631428381-us-east-1",
-          "objectKey": "b6e34a76f5c62722cbf8709ab2cefe9fe2dffcf9e1e45ad340f9358cf77268aa.json",
+          "objectKey": "5a30fe7966a112479d9356ff210113fb2756984ef43884da9e5b55b1b78f8d44.json",
           "region": "us-east-1",
           "assumeRoleArn": "arn:${AWS::Partition}:iam::870631428381:role/cdk-hnb659fds-file-publishing-role-870631428381-us-east-1"
         }

@@ -23,7 +23,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::870631428381:role/cdk-hnb659fds-deploy-role-870631428381-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::870631428381:role/cdk-hnb659fds-cfn-exec-role-870631428381-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-870631428381-us-east-1/b6e34a76f5c62722cbf8709ab2cefe9fe2dffcf9e1e45ad340f9358cf77268aa.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-870631428381-us-east-1/5a30fe7966a112479d9356ff210113fb2756984ef43884da9e5b55b1b78f8d44.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -57,6 +57,126 @@
                 "Value": "CodeLearn"
               }
             ]
+          }
+        ],
+        "/CodeLearn-Database-dev/UsersTable": [
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "UsersTable9725E9C8"
+            }
+          }
+        ],
+        "/CodeLearn-Database-dev/UsersTable/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UsersTable9725E9C8"
+          }
+        ],
+        "/CodeLearn-Database-dev/ProjectsTable": [
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "ProjectsTableAA0A2089"
+            }
+          }
+        ],
+        "/CodeLearn-Database-dev/ProjectsTable/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ProjectsTableAA0A2089"
+          }
+        ],
+        "/CodeLearn-Database-dev/LearningPathsTable": [
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "LearningPathsTable2F8FB81D"
+            }
+          }
+        ],
+        "/CodeLearn-Database-dev/LearningPathsTable/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LearningPathsTable2F8FB81D"
+          }
+        ],
+        "/CodeLearn-Database-dev/TemplatesTable": [
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "TemplatesTable3F253039"
+            }
+          }
+        ],
+        "/CodeLearn-Database-dev/TemplatesTable/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "TemplatesTable3F253039"
+          }
+        ],
+        "/CodeLearn-Database-dev/JobsTable": [
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "JobsTable1970BC16"
+            }
+          }
+        ],
+        "/CodeLearn-Database-dev/JobsTable/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "JobsTable1970BC16"
+          }
+        ],
+        "/CodeLearn-Database-dev/IntegrationsTable": [
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "IntegrationsTable781EC78A"
+            }
+          }
+        ],
+        "/CodeLearn-Database-dev/IntegrationsTable/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IntegrationsTable781EC78A"
+          }
+        ],
+        "/CodeLearn-Database-dev/UsersTableName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UsersTableName"
+          }
+        ],
+        "/CodeLearn-Database-dev/ProjectsTableName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ProjectsTableName"
+          }
+        ],
+        "/CodeLearn-Database-dev/LearningPathsTableName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "LearningPathsTableName"
+          }
+        ],
+        "/CodeLearn-Database-dev/TemplatesTableName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "TemplatesTableName"
+          }
+        ],
+        "/CodeLearn-Database-dev/JobsTableName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "JobsTableName"
+          }
+        ],
+        "/CodeLearn-Database-dev/IntegrationsTableName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IntegrationsTableName"
           }
         ],
         "/CodeLearn-Database-dev/CDKMetadata/Default": [
