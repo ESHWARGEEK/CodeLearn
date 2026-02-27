@@ -171,8 +171,8 @@ aws cognito-idp create-identity-provider \
   --provider-name GitHub \
   --provider-type OIDC \
   --provider-details \
-    client_id=YOUR_GITHUB_CLIENT_ID,\
-    client_secret=YOUR_GITHUB_CLIENT_SECRET,\
+    client_id= Ov23liegYVHQEUiCdgEv,\
+    client_secret=685ecca5efa31c0e5c5cc8cb34467fb76b69d49a,\
     authorize_scopes="user:email",\
     attributes_request_method=GET,\
     oidc_issuer=https://github.com \
@@ -189,7 +189,7 @@ aws cognito-idp create-identity-provider \
   --provider-type Google \
   --provider-details \
     client_id=YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com,\
-    client_secret=YOUR_GOOGLE_CLIENT_SECRET,\
+    client_secret=GOCSPX-YOUR_GOOGLE_CLIENT_SECRET,\
     authorize_scopes="profile email openid" \
   --attribute-mapping email=email,username=sub \
   --region us-east-1

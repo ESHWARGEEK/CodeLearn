@@ -1,5 +1,5 @@
 # Add Google OAuth Provider to Cognito
-# Usage: .\scripts\add-google-oauth.ps1
+# Usage: Copy this to add-google-oauth.ps1 and add your credentials
 
 $UserPoolId = "us-east-1_bNco2tmIx"
 

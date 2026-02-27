@@ -16,7 +16,7 @@ aws cognito-idp update-user-pool-client `
   --allowed-o-auth-flows "code" "implicit" `
   --allowed-o-auth-scopes "email" "openid" "profile" `
   --allowed-o-auth-flows-user-pool-client `
-  --supported-identity-providers "GitHub" "COGNITO" `
+  --supported-identity-providers "GitHub" "Google" "COGNITO" `
   --region us-east-1
 
 if ($LASTEXITCODE -eq 0) {

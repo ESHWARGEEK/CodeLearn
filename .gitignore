@@ -47,3 +47,11 @@ cdk.out/
 *.js
 *.d.ts
 !jest.config.js
+
+# Scripts with real OAuth credentials (use .template versions)
+scripts/add-google-oauth.ps1
+scripts/add-github-oauth.ps1
+
+# Environment backups
+.env.backup
+.env.cdk-outputs
