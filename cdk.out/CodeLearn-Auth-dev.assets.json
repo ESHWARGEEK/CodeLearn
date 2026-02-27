@@ -1,16 +1,16 @@
 {
   "version": "50.0.0",
   "files": {
-    "cab6b538beb506be7e9cab6316594019517380f3f8bed5613bac844ad2b27fbc": {
+    "3c1db619e0b620099a42361119d491130673cf3f95d6edb554fd2c989e20fd6e": {
       "displayName": "codelearn-auth-dev Template",
       "source": {
         "path": "CodeLearn-Auth-dev.template.json",
         "packaging": "file"
       },
       "destinations": {
-        "870631428381-us-east-1-8e554e2d": {
+        "870631428381-us-east-1-865f52f5": {
           "bucketName": "cdk-hnb659fds-assets-870631428381-us-east-1",
-          "objectKey": "cab6b538beb506be7e9cab6316594019517380f3f8bed5613bac844ad2b27fbc.json",
+          "objectKey": "3c1db619e0b620099a42361119d491130673cf3f95d6edb554fd2c989e20fd6e.json",
           "region": "us-east-1",
           "assumeRoleArn": "arn:${AWS::Partition}:iam::870631428381:role/cdk-hnb659fds-file-publishing-role-870631428381-us-east-1"
         }

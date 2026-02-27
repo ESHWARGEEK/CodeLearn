@@ -44,11 +44,7 @@ export class AuthStack extends cdk.Stack {
         flows: {
           authorizationCodeGrant: true,
         },
-        scopes: [
-          cognito.OAuthScope.EMAIL,
-          cognito.OAuthScope.OPENID,
-          cognito.OAuthScope.PROFILE,
-        ],
+        scopes: [cognito.OAuthScope.EMAIL, cognito.OAuthScope.OPENID, cognito.OAuthScope.PROFILE],
         callbackUrls: [
           'http://localhost:3000/api/auth/callback',
           // TODO: Add production callback URLs
@@ -63,40 +59,9 @@ export class AuthStack extends cdk.Stack {
       idTokenValidity: cdk.Duration.hours(1),
     });
 
-    // GitHub OAuth Provider
-    const githubProvider = new cognito.UserPoolIdentityProviderOidc(this, 'GitHubProvider', {
-      name: 'GitHub',
-      userPool: this.userPool,
-      clientId: process.env.GITHUB_CLIENT_ID || 'placeholder-github-client-id',
-      clientSecret: process.env.GITHUB_CLIENT_SECRET || 'placeholder-github-client-secret',
-      issuerUrl: 'https://github.com',
-      attributeMapping: {
-        email: cognito.ProviderAttribute.other('email'),
-        preferredUsername: cognito.ProviderAttribute.other('login'),
-        profilePicture: cognito.ProviderAttribute.other('avatar_url'),
-      },
-      scopes: ['user:email', 'read:user'],
-    });
-
-    // Google OAuth Provider
-    const googleProvider = new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleProvider', {
-      userPool: this.userPool,
-      clientId: process.env.GOOGLE_CLIENT_ID || 'placeholder-google-client-id',
-      clientSecretValue: cdk.SecretValue.unsafePlainText(
-        process.env.GOOGLE_CLIENT_SECRET || 'placeholder-google-client-secret'
-      ),
-      scopes: ['email', 'profile', 'openid'],
-      attributeMapping: {
-        email: cognito.ProviderAttribute.GOOGLE_EMAIL,
-        givenName: cognito.ProviderAttribute.GOOGLE_GIVEN_NAME,
-        familyName: cognito.ProviderAttribute.GOOGLE_FAMILY_NAME,
-        profilePicture: cognito.ProviderAttribute.GOOGLE_PICTURE,
-      },
-    });
-
-    // Add dependencies to ensure providers are created before client
-    this.userPoolClient.node.addDependency(githubProvider);
-    this.userPoolClient.node.addDependency(googleProvider);
+    // OAuth Providers will be added manually via AWS CLI after deployment
+    // This allows us to use real credentials from GitHub and Google
+    // See OAUTH_SETUP_GUIDE.md for instructions
 
     // User Pool Domain
     this.userPool.addDomain('UserPoolDomain', {

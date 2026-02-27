@@ -361,7 +361,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::870631428381:role/cdk-hnb659fds-deploy-role-870631428381-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::870631428381:role/cdk-hnb659fds-cfn-exec-role-870631428381-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-870631428381-us-east-1/cab6b538beb506be7e9cab6316594019517380f3f8bed5613bac844ad2b27fbc.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-870631428381-us-east-1/3c1db619e0b620099a42361119d491130673cf3f95d6edb554fd2c989e20fd6e.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -413,18 +413,6 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "UserPoolUserPoolDomain9F01E991"
-          }
-        ],
-        "/CodeLearn-Auth-dev/GitHubProvider/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "GitHubProviderDD1D07DF"
-          }
-        ],
-        "/CodeLearn-Auth-dev/GoogleProvider/Resource": [
-          {
-            "type": "aws:cdk:logicalId",
-            "data": "GoogleProvider566D8493"
           }
         ],
         "/CodeLearn-Auth-dev/IdentityPool": [
