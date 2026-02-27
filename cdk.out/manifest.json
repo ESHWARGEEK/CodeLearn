@@ -222,7 +222,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::870631428381:role/cdk-hnb659fds-deploy-role-870631428381-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::870631428381:role/cdk-hnb659fds-cfn-exec-role-870631428381-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-870631428381-us-east-1/b8912ccaf615b847c4d6702a456a39bb9c2681221333ed7a8dabe8876f0a0a35.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-870631428381-us-east-1/28f2b791bee3e37e6c769bacecab6a97690ea6a2212f78e1a54cb33c5cd27a1d.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -256,6 +256,66 @@
                 "Value": "CodeLearn"
               }
             ]
+          }
+        ],
+        "/CodeLearn-Storage-dev/UserProjectsBucket/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserProjectsBucketFBCCBD18"
+          }
+        ],
+        "/CodeLearn-Storage-dev/TemplatesBucket/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "TemplatesBucketB07CED20"
+          }
+        ],
+        "/CodeLearn-Storage-dev/AssetsBucket/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AssetsBucket5CB76180"
+          }
+        ],
+        "/CodeLearn-Storage-dev/AssetsBucket/Policy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AssetsBucketPolicyFFACF6C4"
+          }
+        ],
+        "/CodeLearn-Storage-dev/AssetsDistribution/Origin1/S3OriginAccessControl/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AssetsDistributionOrigin1S3OriginAccessControl87E18FB2"
+          }
+        ],
+        "/CodeLearn-Storage-dev/AssetsDistribution/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AssetsDistribution16B90841"
+          }
+        ],
+        "/CodeLearn-Storage-dev/UserProjectsBucketName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserProjectsBucketName"
+          }
+        ],
+        "/CodeLearn-Storage-dev/TemplatesBucketName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "TemplatesBucketName"
+          }
+        ],
+        "/CodeLearn-Storage-dev/AssetsBucketName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AssetsBucketName"
+          }
+        ],
+        "/CodeLearn-Storage-dev/AssetsCdnUrl": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AssetsCdnUrl"
           }
         ],
         "/CodeLearn-Storage-dev/CDKMetadata/Default": [

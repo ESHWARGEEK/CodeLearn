@@ -1,13 +1,336 @@
 {
  "Description": "S3 buckets for CodeLearn platform",
  "Resources": {
+  "UserProjectsBucketFBCCBD18": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "BucketEncryption": {
+     "ServerSideEncryptionConfiguration": [
+      {
+       "ServerSideEncryptionByDefault": {
+        "SSEAlgorithm": "AES256"
+       }
+      }
+     ]
+    },
+    "BucketName": "codelearn-user-projects-dev",
+    "CorsConfiguration": {
+     "CorsRules": [
+      {
+       "AllowedHeaders": [
+        "*"
+       ],
+       "AllowedMethods": [
+        "GET",
+        "PUT",
+        "POST",
+        "DELETE"
+       ],
+       "AllowedOrigins": [
+        "*"
+       ],
+       "MaxAge": 3000
+      }
+     ]
+    },
+    "PublicAccessBlockConfiguration": {
+     "BlockPublicAcls": true,
+     "BlockPublicPolicy": true,
+     "IgnorePublicAcls": true,
+     "RestrictPublicBuckets": true
+    },
+    "VersioningConfiguration": {
+     "Status": "Enabled"
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Storage-dev/UserProjectsBucket/Resource"
+   }
+  },
+  "TemplatesBucketB07CED20": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "BucketEncryption": {
+     "ServerSideEncryptionConfiguration": [
+      {
+       "ServerSideEncryptionByDefault": {
+        "SSEAlgorithm": "AES256"
+       }
+      }
+     ]
+    },
+    "BucketName": "codelearn-templates-dev",
+    "CorsConfiguration": {
+     "CorsRules": [
+      {
+       "AllowedHeaders": [
+        "*"
+       ],
+       "AllowedMethods": [
+        "GET",
+        "PUT"
+       ],
+       "AllowedOrigins": [
+        "*"
+       ],
+       "MaxAge": 3000
+      }
+     ]
+    },
+    "LifecycleConfiguration": {
+     "Rules": [
+      {
+       "Id": "DeleteOldVersions",
+       "NoncurrentVersionExpiration": {
+        "NoncurrentDays": 90
+       },
+       "Status": "Enabled"
+      },
+      {
+       "Id": "TransitionToIA",
+       "Status": "Enabled",
+       "Transitions": [
+        {
+         "StorageClass": "STANDARD_IA",
+         "TransitionInDays": 30
+        }
+       ]
+      }
+     ]
+    },
+    "PublicAccessBlockConfiguration": {
+     "BlockPublicAcls": true,
+     "BlockPublicPolicy": true,
+     "IgnorePublicAcls": true,
+     "RestrictPublicBuckets": true
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Storage-dev/TemplatesBucket/Resource"
+   }
+  },
+  "AssetsBucket5CB76180": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "BucketEncryption": {
+     "ServerSideEncryptionConfiguration": [
+      {
+       "ServerSideEncryptionByDefault": {
+        "SSEAlgorithm": "AES256"
+       }
+      }
+     ]
+    },
+    "BucketName": "codelearn-assets-dev",
+    "CorsConfiguration": {
+     "CorsRules": [
+      {
+       "AllowedHeaders": [
+        "*"
+       ],
+       "AllowedMethods": [
+        "GET",
+        "PUT"
+       ],
+       "AllowedOrigins": [
+        "*"
+       ],
+       "MaxAge": 3000
+      }
+     ]
+    },
+    "PublicAccessBlockConfiguration": {
+     "BlockPublicAcls": true,
+     "BlockPublicPolicy": true,
+     "IgnorePublicAcls": true,
+     "RestrictPublicBuckets": true
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Storage-dev/AssetsBucket/Resource"
+   }
+  },
+  "AssetsBucketPolicyFFACF6C4": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "AssetsBucket5CB76180"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "s3:GetObject",
+       "Condition": {
+        "StringEquals": {
+         "AWS:SourceArn": {
+          "Fn::Join": [
+           "",
+           [
+            "arn:",
+            {
+             "Ref": "AWS::Partition"
+            },
+            ":cloudfront::",
+            {
+             "Ref": "AWS::AccountId"
+            },
+            ":distribution/",
+            {
+             "Ref": "AssetsDistribution16B90841"
+            }
+           ]
+          ]
+         }
+        }
+       },
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "cloudfront.amazonaws.com"
+       },
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Fn::GetAtt": [
+            "AssetsBucket5CB76180",
+            "Arn"
+           ]
+          },
+          "/*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Storage-dev/AssetsBucket/Policy/Resource"
+   }
+  },
+  "AssetsDistributionOrigin1S3OriginAccessControl87E18FB2": {
+   "Type": "AWS::CloudFront::OriginAccessControl",
+   "Properties": {
+    "OriginAccessControlConfig": {
+     "Name": "codelearnstoragedevAssetsDisOrigin1S3OriginAccessControl3C14EA47",
+     "OriginAccessControlOriginType": "s3",
+     "SigningBehavior": "always",
+     "SigningProtocol": "sigv4"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Storage-dev/AssetsDistribution/Origin1/S3OriginAccessControl/Resource"
+   }
+  },
+  "AssetsDistribution16B90841": {
+   "Type": "AWS::CloudFront::Distribution",
+   "Properties": {
+    "DistributionConfig": {
+     "Comment": "CodeLearn Assets CDN - dev",
+     "DefaultCacheBehavior": {
+      "AllowedMethods": [
+       "GET",
+       "HEAD"
+      ],
+      "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+      "Compress": true,
+      "TargetOriginId": "CodeLearnStoragedevAssetsDistributionOrigin1D64022ED",
+      "ViewerProtocolPolicy": "redirect-to-https"
+     },
+     "Enabled": true,
+     "HttpVersion": "http2",
+     "IPV6Enabled": true,
+     "Origins": [
+      {
+       "DomainName": {
+        "Fn::GetAtt": [
+         "AssetsBucket5CB76180",
+         "RegionalDomainName"
+        ]
+       },
+       "Id": "CodeLearnStoragedevAssetsDistributionOrigin1D64022ED",
+       "OriginAccessControlId": {
+        "Fn::GetAtt": [
+         "AssetsDistributionOrigin1S3OriginAccessControl87E18FB2",
+         "Id"
+        ]
+       },
+       "S3OriginConfig": {
+        "OriginAccessIdentity": ""
+       }
+      }
+     ],
+     "PriceClass": "PriceClass_100"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Storage-dev/AssetsDistribution/Resource"
+   }
+  },
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/zPSMzIx0DNQTCwv1k1OydbNyUzSCy5JTM7WyctPSdXLKtYvMzLVM9IzVMwqzszULSrNK8nMTdULgtAA+UBfsj4AAAA="
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/3WLQQ6CMBBFz8K+jFj0AIp7jRzAQClmoLSmM5WYpnc3ioluXP3/X/6TIDcFFFkzU666MTfYQqy5UaNoZrpEKiHugxo1i6q3n7bEyRlUjy9edhLKuND13lmGeEBij21gdFbU5dHjFe1OKU1UOcvemZf/B//KKb2PgW+Bk7Cu0zDQ6i63IGGdDYSY+2AZJw3nJZ+eens52gAAAA=="
    },
    "Metadata": {
     "aws:cdk:path": "CodeLearn-Storage-dev/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "UserProjectsBucketName": {
+   "Description": "User projects bucket name",
+   "Value": {
+    "Ref": "UserProjectsBucketFBCCBD18"
+   },
+   "Export": {
+    "Name": "codelearn-user-projects-bucket-dev"
+   }
+  },
+  "TemplatesBucketName": {
+   "Description": "Templates bucket name",
+   "Value": {
+    "Ref": "TemplatesBucketB07CED20"
+   },
+   "Export": {
+    "Name": "codelearn-templates-bucket-dev"
+   }
+  },
+  "AssetsBucketName": {
+   "Description": "Assets bucket name",
+   "Value": {
+    "Ref": "AssetsBucket5CB76180"
+   },
+   "Export": {
+    "Name": "codelearn-assets-bucket-dev"
+   }
+  },
+  "AssetsCdnUrl": {
+   "Description": "CloudFront CDN URL for assets",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Fn::GetAtt": [
+        "AssetsDistribution16B90841",
+        "DomainName"
+       ]
+      }
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "codelearn-assets-cdn-url-dev"
    }
   }
  },
