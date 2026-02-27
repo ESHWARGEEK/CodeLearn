@@ -86,10 +86,6 @@
      "Ref": "UserPool6BA7E5F2"
     }
    },
-   "DependsOn": [
-    "GitHubProviderDD1D07DF",
-    "GoogleProvider566D8493"
-   ],
    "Metadata": {
     "aws:cdk:path": "CodeLearn-Auth-dev/UserPool/UserPoolClient/Resource"
    }
@@ -104,55 +100,6 @@
    },
    "Metadata": {
     "aws:cdk:path": "CodeLearn-Auth-dev/UserPool/UserPoolDomain/Resource"
-   }
-  },
-  "GitHubProviderDD1D07DF": {
-   "Type": "AWS::Cognito::UserPoolIdentityProvider",
-   "Properties": {
-    "AttributeMapping": {
-     "email": "email",
-     "preferred_username": "login",
-     "picture": "avatar_url"
-    },
-    "ProviderDetails": {
-     "client_id": "placeholder-github-client-id",
-     "client_secret": "placeholder-github-client-secret",
-     "authorize_scopes": "user:email read:user",
-     "attributes_request_method": "GET",
-     "oidc_issuer": "https://github.com"
-    },
-    "ProviderName": "GitHub",
-    "ProviderType": "OIDC",
-    "UserPoolId": {
-     "Ref": "UserPool6BA7E5F2"
-    }
-   },
-   "Metadata": {
-    "aws:cdk:path": "CodeLearn-Auth-dev/GitHubProvider/Resource"
-   }
-  },
-  "GoogleProvider566D8493": {
-   "Type": "AWS::Cognito::UserPoolIdentityProvider",
-   "Properties": {
-    "AttributeMapping": {
-     "email": "email",
-     "given_name": "given_name",
-     "family_name": "family_name",
-     "picture": "picture"
-    },
-    "ProviderDetails": {
-     "client_id": "placeholder-google-client-id",
-     "client_secret": "placeholder-google-client-secret",
-     "authorize_scopes": "email profile openid"
-    },
-    "ProviderName": "Google",
-    "ProviderType": "Google",
-    "UserPoolId": {
-     "Ref": "UserPool6BA7E5F2"
-    }
-   },
-   "Metadata": {
-    "aws:cdk:path": "CodeLearn-Auth-dev/GoogleProvider/Resource"
    }
   },
   "IdentityPool": {
@@ -181,7 +128,7 @@
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/3WL0QqCQBREv6V3vdlSX2AQPSlFz7HtbnJ13Ru7VyXEfw9JRYKeZubMjACxTyDZyC7ESlexxQf0V5aqimQX7ooKh0zQ34LxOZGN0qdb/GxSi8bxuprIHI9US3TrwUTmeNbGMfI799SiNj5Drdbz3/7v8URUWDNel4bIDiPIGn41PESOtIEybFtxAAG7TRkQY984xtrA5asfUcmwSRcBAAA="
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/02KwQ6CMBBEv4V7WbHRL8CLJw3Gs6ltNQtl19CtxBD+3RBFOc2bN6NBbwooMtPH3LomD3iF4STGNsr08WL5TigMwzn67sgcVHmjH89QBvQky+lr5rrj1iAtD3+zd54E5TXZcRKHJI8koyJ2Huq4euotaFhndUTMu0SCrYfqk29ORvwovwAAAA=="
    },
    "Metadata": {
     "aws:cdk:path": "CodeLearn-Auth-dev/CDKMetadata/Default"
