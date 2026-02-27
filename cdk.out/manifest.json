@@ -500,7 +500,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::870631428381:role/cdk-hnb659fds-deploy-role-870631428381-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::870631428381:role/cdk-hnb659fds-cfn-exec-role-870631428381-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-870631428381-us-east-1/f1a6337889262ff9a4d5ea54752e86311b01993e4e1a4ab7b23f79c533461d81.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-870631428381-us-east-1/8326edd6bb377a5e9df4fd3144dfa251f47a29c98e7807c2668e4f0afab7df9a.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -534,6 +534,54 @@
                 "Value": "CodeLearn"
               }
             ]
+          }
+        ],
+        "/CodeLearn-Queue-dev/AiJobsDlq/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AiJobsDlq0E620B9E"
+          }
+        ],
+        "/CodeLearn-Queue-dev/AiJobsQueue/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AiJobsQueue6DBADF29"
+          }
+        ],
+        "/CodeLearn-Queue-dev/QueueDepthAlarm/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "QueueDepthAlarmD4A3A893"
+          }
+        ],
+        "/CodeLearn-Queue-dev/DlqAlarm/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DlqAlarmAA93C9B0"
+          }
+        ],
+        "/CodeLearn-Queue-dev/AiJobsQueueUrl": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AiJobsQueueUrl"
+          }
+        ],
+        "/CodeLearn-Queue-dev/AiJobsQueueArn": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AiJobsQueueArn"
+          }
+        ],
+        "/CodeLearn-Queue-dev/AiJobsDlqUrl": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AiJobsDlqUrl"
+          }
+        ],
+        "/CodeLearn-Queue-dev/AiJobsDlqArn": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AiJobsDlqArn"
           }
         ],
         "/CodeLearn-Queue-dev/CDKMetadata/Default": [
