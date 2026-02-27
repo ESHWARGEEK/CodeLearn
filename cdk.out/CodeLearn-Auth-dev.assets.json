@@ -1,0 +1,21 @@
+{
+  "version": "50.0.0",
+  "files": {
+    "540235037133027bb50f5def5d03fa8751a087fd5b13c08a102569d013407e31": {
+      "displayName": "codelearn-auth-dev Template",
+      "source": {
+        "path": "CodeLearn-Auth-dev.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "870631428381-us-east-1-97d6fb8f": {
+          "bucketName": "cdk-hnb659fds-assets-870631428381-us-east-1",
+          "objectKey": "540235037133027bb50f5def5d03fa8751a087fd5b13c08a102569d013407e31.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::870631428381:role/cdk-hnb659fds-file-publishing-role-870631428381-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

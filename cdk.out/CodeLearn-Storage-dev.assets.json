@@ -1,0 +1,21 @@
+{
+  "version": "50.0.0",
+  "files": {
+    "b8912ccaf615b847c4d6702a456a39bb9c2681221333ed7a8dabe8876f0a0a35": {
+      "displayName": "codelearn-storage-dev Template",
+      "source": {
+        "path": "CodeLearn-Storage-dev.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "870631428381-us-east-1-22ca8b3a": {
+          "bucketName": "cdk-hnb659fds-assets-870631428381-us-east-1",
+          "objectKey": "b8912ccaf615b847c4d6702a456a39bb9c2681221333ed7a8dabe8876f0a0a35.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::870631428381:role/cdk-hnb659fds-file-publishing-role-870631428381-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}
