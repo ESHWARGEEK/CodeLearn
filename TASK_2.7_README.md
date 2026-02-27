@@ -19,6 +19,14 @@ I've created comprehensive guides to help you:
 | **scripts/update-env-from-cdk.sh** | Bash script to extract CDK outputs |
 | **scripts/update-env-from-cdk.ps1** | PowerShell script to extract CDK outputs |
 
+## ⚠️ IMPORTANT: New Workflow!
+
+**Deploy to Vercel First!** This way you configure OAuth with your production URL and only do it once.
+
+**Follow:** `DEPLOYMENT_WORKFLOW.md` for the complete workflow.
+
+---
+
 ## 🎯 Quick Start
 
 ### 1. Deploy to AWS (5-10 minutes)

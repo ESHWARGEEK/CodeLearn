@@ -34,6 +34,16 @@ This task has comprehensive documentation to guide you:
 
 ---
 
+## ⚠️ IMPORTANT: Deploy to Vercel First!
+
+**Smart Strategy:** Deploy your Next.js app to Vercel FIRST to get your production URL, then configure OAuth with that URL. This way you only configure OAuth once!
+
+**See:** `DEPLOYMENT_WORKFLOW.md` for the complete step-by-step workflow.
+
+**See:** `VERCEL_DEPLOYMENT_GUIDE.md` for detailed Vercel deployment instructions.
+
+---
+
 ## 🚀 Quick Start Guide
 
 ### Step 1: Deploy AWS Infrastructure
