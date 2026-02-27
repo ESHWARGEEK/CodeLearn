@@ -1,13 +1,226 @@
 {
  "Description": "Cognito authentication for CodeLearn platform",
  "Resources": {
+  "UserPool6BA7E5F2": {
+   "Type": "AWS::Cognito::UserPool",
+   "Properties": {
+    "AccountRecoverySetting": {
+     "RecoveryMechanisms": [
+      {
+       "Name": "verified_email",
+       "Priority": 1
+      }
+     ]
+    },
+    "AdminCreateUserConfig": {
+     "AllowAdminCreateUserOnly": false
+    },
+    "AutoVerifiedAttributes": [
+     "email"
+    ],
+    "EmailVerificationMessage": "The verification code to your new account is {####}",
+    "EmailVerificationSubject": "Verify your new account",
+    "Policies": {
+     "PasswordPolicy": {
+      "MinimumLength": 8,
+      "RequireLowercase": true,
+      "RequireNumbers": true,
+      "RequireSymbols": false,
+      "RequireUppercase": true
+     }
+    },
+    "SmsVerificationMessage": "The verification code to your new account is {####}",
+    "UserPoolName": "codelearn-users-dev",
+    "UsernameAttributes": [
+     "email"
+    ],
+    "VerificationMessageTemplate": {
+     "DefaultEmailOption": "CONFIRM_WITH_CODE",
+     "EmailMessage": "The verification code to your new account is {####}",
+     "EmailSubject": "Verify your new account",
+     "SmsMessage": "The verification code to your new account is {####}"
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Auth-dev/UserPool/Resource"
+   }
+  },
+  "UserPoolUserPoolClient40176907": {
+   "Type": "AWS::Cognito::UserPoolClient",
+   "Properties": {
+    "AccessTokenValidity": 60,
+    "AllowedOAuthFlows": [
+     "code"
+    ],
+    "AllowedOAuthFlowsUserPoolClient": true,
+    "AllowedOAuthScopes": [
+     "email",
+     "openid",
+     "profile"
+    ],
+    "CallbackURLs": [
+     "http://localhost:3000/api/auth/callback"
+    ],
+    "ClientName": "codelearn-client-dev",
+    "ExplicitAuthFlows": [
+     "ALLOW_USER_PASSWORD_AUTH",
+     "ALLOW_USER_SRP_AUTH",
+     "ALLOW_REFRESH_TOKEN_AUTH"
+    ],
+    "IdTokenValidity": 60,
+    "LogoutURLs": [
+     "http://localhost:3000"
+    ],
+    "RefreshTokenValidity": 43200,
+    "SupportedIdentityProviders": [
+     "COGNITO"
+    ],
+    "TokenValidityUnits": {
+     "AccessToken": "minutes",
+     "IdToken": "minutes",
+     "RefreshToken": "minutes"
+    },
+    "UserPoolId": {
+     "Ref": "UserPool6BA7E5F2"
+    }
+   },
+   "DependsOn": [
+    "GitHubProviderDD1D07DF",
+    "GoogleProvider566D8493"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Auth-dev/UserPool/UserPoolClient/Resource"
+   }
+  },
+  "UserPoolUserPoolDomain9F01E991": {
+   "Type": "AWS::Cognito::UserPoolDomain",
+   "Properties": {
+    "Domain": "codelearn-dev",
+    "UserPoolId": {
+     "Ref": "UserPool6BA7E5F2"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Auth-dev/UserPool/UserPoolDomain/Resource"
+   }
+  },
+  "GitHubProviderDD1D07DF": {
+   "Type": "AWS::Cognito::UserPoolIdentityProvider",
+   "Properties": {
+    "AttributeMapping": {
+     "email": "email",
+     "preferred_username": "login",
+     "picture": "avatar_url"
+    },
+    "ProviderDetails": {
+     "client_id": "placeholder-github-client-id",
+     "client_secret": "placeholder-github-client-secret",
+     "authorize_scopes": "user:email read:user",
+     "attributes_request_method": "GET",
+     "oidc_issuer": "https://github.com"
+    },
+    "ProviderName": "GitHub",
+    "ProviderType": "OIDC",
+    "UserPoolId": {
+     "Ref": "UserPool6BA7E5F2"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Auth-dev/GitHubProvider/Resource"
+   }
+  },
+  "GoogleProvider566D8493": {
+   "Type": "AWS::Cognito::UserPoolIdentityProvider",
+   "Properties": {
+    "AttributeMapping": {
+     "email": "email",
+     "given_name": "given_name",
+     "family_name": "family_name",
+     "picture": "picture"
+    },
+    "ProviderDetails": {
+     "client_id": "placeholder-google-client-id",
+     "client_secret": "placeholder-google-client-secret",
+     "authorize_scopes": "email profile openid"
+    },
+    "ProviderName": "Google",
+    "ProviderType": "Google",
+    "UserPoolId": {
+     "Ref": "UserPool6BA7E5F2"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Auth-dev/GoogleProvider/Resource"
+   }
+  },
+  "IdentityPool": {
+   "Type": "AWS::Cognito::IdentityPool",
+   "Properties": {
+    "AllowUnauthenticatedIdentities": false,
+    "CognitoIdentityProviders": [
+     {
+      "ClientId": {
+       "Ref": "UserPoolUserPoolClient40176907"
+      },
+      "ProviderName": {
+       "Fn::GetAtt": [
+        "UserPool6BA7E5F2",
+        "ProviderName"
+       ]
+      }
+     }
+    ],
+    "IdentityPoolName": "codelearn_identity_pool_dev"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CodeLearn-Auth-dev/IdentityPool"
+   }
+  },
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/zPSMzIx0DNQTCwv1k1OydbNyUzSCy5JTM7WyctPSdXLKtYvMzLVM9IzVMwqzszULSrNK8nMTdULgtAA+UBfsj4AAAA="
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/3WL0QqCQBREv6V3vdlSX2AQPSlFz7HtbnJ13Ru7VyXEfw9JRYKeZubMjACxTyDZyC7ESlexxQf0V5aqimQX7ooKh0zQ34LxOZGN0qdb/GxSi8bxuprIHI9US3TrwUTmeNbGMfI799SiNj5Drdbz3/7v8URUWDNel4bIDiPIGn41PESOtIEybFtxAAG7TRkQY984xtrA5asfUcmwSRcBAAA="
    },
    "Metadata": {
     "aws:cdk:path": "CodeLearn-Auth-dev/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "UserPoolId": {
+   "Description": "Cognito User Pool ID",
+   "Value": {
+    "Ref": "UserPool6BA7E5F2"
+   },
+   "Export": {
+    "Name": "codelearn-user-pool-id-dev"
+   }
+  },
+  "UserPoolClientId": {
+   "Description": "Cognito User Pool Client ID",
+   "Value": {
+    "Ref": "UserPoolUserPoolClient40176907"
+   },
+   "Export": {
+    "Name": "codelearn-user-pool-client-id-dev"
+   }
+  },
+  "IdentityPoolId": {
+   "Description": "Cognito Identity Pool ID",
+   "Value": {
+    "Ref": "IdentityPool"
+   },
+   "Export": {
+    "Name": "codelearn-identity-pool-id-dev"
+   }
+  },
+  "UserPoolDomain": {
+   "Description": "Cognito User Pool Domain",
+   "Value": "https://codelearn-dev.auth.us-east-1.amazoncognito.com",
+   "Export": {
+    "Name": "codelearn-user-pool-domain-dev"
    }
   }
  },

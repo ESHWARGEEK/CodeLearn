@@ -361,7 +361,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::870631428381:role/cdk-hnb659fds-deploy-role-870631428381-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::870631428381:role/cdk-hnb659fds-cfn-exec-role-870631428381-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-870631428381-us-east-1/540235037133027bb50f5def5d03fa8751a087fd5b13c08a102569d013407e31.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-870631428381-us-east-1/cab6b538beb506be7e9cab6316594019517380f3f8bed5613bac844ad2b27fbc.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -395,6 +395,66 @@
                 "Value": "CodeLearn"
               }
             ]
+          }
+        ],
+        "/CodeLearn-Auth-dev/UserPool/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserPool6BA7E5F2"
+          }
+        ],
+        "/CodeLearn-Auth-dev/UserPool/UserPoolClient/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserPoolUserPoolClient40176907"
+          }
+        ],
+        "/CodeLearn-Auth-dev/UserPool/UserPoolDomain/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserPoolUserPoolDomain9F01E991"
+          }
+        ],
+        "/CodeLearn-Auth-dev/GitHubProvider/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GitHubProviderDD1D07DF"
+          }
+        ],
+        "/CodeLearn-Auth-dev/GoogleProvider/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GoogleProvider566D8493"
+          }
+        ],
+        "/CodeLearn-Auth-dev/IdentityPool": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IdentityPool"
+          }
+        ],
+        "/CodeLearn-Auth-dev/UserPoolId": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserPoolId"
+          }
+        ],
+        "/CodeLearn-Auth-dev/UserPoolClientId": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserPoolClientId"
+          }
+        ],
+        "/CodeLearn-Auth-dev/IdentityPoolId": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IdentityPoolId"
+          }
+        ],
+        "/CodeLearn-Auth-dev/UserPoolDomain": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UserPoolDomain"
           }
         ],
         "/CodeLearn-Auth-dev/CDKMetadata/Default": [
