@@ -26,20 +26,71 @@ export async function POST(request: NextRequest) {
       validatedData.name
     );
 
-    // Return success response
-    return NextResponse.json(
+    // If email verification is required (userConfirmed = false)
+    if (!result.userConfirmed) {
+      return NextResponse.json(
+        {
+          success: true,
+          data: {
+            userId: result.userId,
+            userConfirmed: false,
+            message: 'Please check your email for verification code',
+          },
+        },
+        { status: 201 }
+      );
+    }
+
+    // If email verification is disabled (userConfirmed = true), auto-login
+    // This happens when Cognito User Pool has email verification disabled
+    const { signInUser, getUserFromToken } = await import('@/lib/auth/cognito');
+
+    const tokens = await signInUser(validatedData.email, validatedData.password);
+    const user = await getUserFromToken(tokens.accessToken);
+
+    // Set httpOnly cookies
+    const response = NextResponse.json(
       {
         success: true,
         data: {
           userId: result.userId,
-          userConfirmed: result.userConfirmed,
-          message: result.userConfirmed
-            ? 'Account created successfully'
-            : 'Please check your email for verification code',
+          userConfirmed: true,
+          user,
+          tokens: {
+            expiresIn: tokens.expiresIn,
+          },
+          message: 'Account created successfully',
         },
       },
       { status: 201 }
     );
+
+    // Set httpOnly cookies for tokens
+    response.cookies.set('accessToken', tokens.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: tokens.expiresIn,
+      path: '/',
+    });
+
+    response.cookies.set('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      path: '/',
+    });
+
+    response.cookies.set('idToken', tokens.idToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: tokens.expiresIn,
+      path: '/',
+    });
+
+    return response;
   } catch (error: any) {
     console.error('Signup error:', error);
 

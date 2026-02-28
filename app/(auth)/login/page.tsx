@@ -3,9 +3,10 @@
 // Login Page for CodeLearn Platform - New Dark Design
 // Modern split-screen layout with code background
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useSearchParams } from 'next/navigation';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,9 +20,21 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const searchParams = useSearchParams();
+  const verified = searchParams.get('verified');
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showVerifiedMessage, setShowVerifiedMessage] = useState(verified === 'true');
+
+  // Hide verified message after 5 seconds
+  useEffect(() => {
+    if (showVerifiedMessage) {
+      const timer = setTimeout(() => setShowVerifiedMessage(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showVerifiedMessage]);
 
   const {
     register,

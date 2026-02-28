@@ -200,6 +200,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error(data.error?.message || 'Signup failed');
         }
 
+        // Check if email verification is required
+        if (!data.data.userConfirmed) {
+          // Redirect to email verification page
+          console.log('Email verification required, redirecting...');
+          router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+          return;
+        }
+
         // Validate payload structure before accessing nested properties
         if (!data?.data?.user || !data?.data?.tokens) {
           console.error('Invalid response structure from signup API:', data);
