@@ -16,9 +16,12 @@ import {
 import { jwtVerify, createRemoteJWKSet } from 'jose';
 import type { AuthTokens, User } from '@/types/auth';
 
+// Shared AWS region constant with fallback
+const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
+
 // Initialize Cognito client
 const cognitoClient = new CognitoIdentityProviderClient({
-  region: process.env.AWS_REGION || 'us-east-1',
+  region: AWS_REGION,
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
@@ -30,7 +33,7 @@ const CLIENT_ID = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!;
 const CLIENT_SECRET = process.env.COGNITO_CLIENT_SECRET;
 
 // JWKS endpoint for token verification
-const JWKS_URI = `https://cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${USER_POOL_ID}/.well-known/jwks.json`;
+const JWKS_URI = `https://cognito-idp.${AWS_REGION}.amazonaws.com/${USER_POOL_ID}/.well-known/jwks.json`;
 const JWKS = createRemoteJWKSet(new URL(JWKS_URI));
 
 /**
@@ -151,7 +154,7 @@ export async function refreshAccessToken(refreshToken: string): Promise<AuthToke
 export async function verifyToken(token: string): Promise<any> {
   try {
     const { payload } = await jwtVerify(token, JWKS, {
-      issuer: `https://cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${USER_POOL_ID}`,
+      issuer: `https://cognito-idp.${AWS_REGION}.amazonaws.com/${USER_POOL_ID}`,
       audience: CLIENT_ID,
     });
 
