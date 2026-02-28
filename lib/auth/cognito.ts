@@ -14,6 +14,7 @@ import {
   AdminGetUserCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { jwtVerify, createRemoteJWKSet } from 'jose';
+import * as crypto from 'crypto';
 import type { AuthTokens, User } from '@/types/auth';
 
 // Shared AWS region constant with fallback
@@ -37,6 +38,33 @@ const JWKS_URI = `https://cognito-idp.${AWS_REGION}.amazonaws.com/${USER_POOL_ID
 const JWKS = createRemoteJWKSet(new URL(JWKS_URI));
 
 /**
+ * Compute SecretHash for Cognito operations
+ * Required when CLIENT_SECRET is configured
+ */
+function computeSecretHash(username: string): string | undefined {
+  if (!CLIENT_SECRET) {
+    return undefined;
+  }
+
+  const message = username + CLIENT_ID;
+  const hmac = crypto.createHmac('sha256', CLIENT_SECRET);
+  hmac.update(message);
+  return hmac.digest('base64');
+}
+
+/**
+ * Build Basic Authorization header for OAuth token exchange
+ */
+function buildAuthHeader(): string | undefined {
+  if (!CLIENT_SECRET) {
+    return undefined;
+  }
+
+  const credentials = `${CLIENT_ID}:${CLIENT_SECRET}`;
+  return `Basic ${Buffer.from(credentials).toString('base64')}`;
+}
+
+/**
  * Sign up a new user with email and password
  */
 export async function signUpUser(
@@ -45,10 +73,13 @@ export async function signUpUser(
   name?: string
 ): Promise<{ userId: string; userConfirmed: boolean }> {
   try {
+    const secretHash = computeSecretHash(email);
+
     const command = new SignUpCommand({
       ClientId: CLIENT_ID,
       Username: email,
       Password: password,
+      SecretHash: secretHash,
       UserAttributes: [
         { Name: 'email', Value: email },
         ...(name ? [{ Name: 'name', Value: name }] : []),
@@ -72,10 +103,13 @@ export async function signUpUser(
  */
 export async function confirmSignUp(email: string, code: string): Promise<void> {
   try {
+    const secretHash = computeSecretHash(email);
+
     const command = new ConfirmSignUpCommand({
       ClientId: CLIENT_ID,
       Username: email,
       ConfirmationCode: code,
+      SecretHash: secretHash,
     });
 
     await cognitoClient.send(command);
@@ -90,13 +124,21 @@ export async function confirmSignUp(email: string, code: string): Promise<void> 
  */
 export async function signInUser(email: string, password: string): Promise<AuthTokens> {
   try {
+    const secretHash = computeSecretHash(email);
+
+    const authParameters: Record<string, string> = {
+      USERNAME: email,
+      PASSWORD: password,
+    };
+
+    if (secretHash) {
+      authParameters.SECRET_HASH = secretHash;
+    }
+
     const command = new InitiateAuthCommand({
       ClientId: CLIENT_ID,
       AuthFlow: 'USER_PASSWORD_AUTH',
-      AuthParameters: {
-        USERNAME: email,
-        PASSWORD: password,
-      },
+      AuthParameters: authParameters,
     });
 
     const response = await cognitoClient.send(command);
@@ -122,12 +164,17 @@ export async function signInUser(email: string, password: string): Promise<AuthT
  */
 export async function refreshAccessToken(refreshToken: string): Promise<AuthTokens> {
   try {
+    const authParameters: Record<string, string> = {
+      REFRESH_TOKEN: refreshToken,
+    };
+
+    // Note: SECRET_HASH is not required for REFRESH_TOKEN_AUTH flow
+    // as the refresh token itself authenticates the request
+
     const command = new InitiateAuthCommand({
       ClientId: CLIENT_ID,
       AuthFlow: 'REFRESH_TOKEN_AUTH',
-      AuthParameters: {
-        REFRESH_TOKEN: refreshToken,
-      },
+      AuthParameters: authParameters,
     });
 
     const response = await cognitoClient.send(command);
@@ -217,9 +264,12 @@ export async function signOutUser(accessToken: string): Promise<void> {
  */
 export async function forgotPassword(email: string): Promise<void> {
   try {
+    const secretHash = computeSecretHash(email);
+
     const command = new ForgotPasswordCommand({
       ClientId: CLIENT_ID,
       Username: email,
+      SecretHash: secretHash,
     });
 
     await cognitoClient.send(command);
@@ -238,11 +288,14 @@ export async function confirmPasswordReset(
   newPassword: string
 ): Promise<void> {
   try {
+    const secretHash = computeSecretHash(email);
+
     const command = new ConfirmForgotPasswordCommand({
       ClientId: CLIENT_ID,
       Username: email,
       ConfirmationCode: code,
       Password: newPassword,
+      SecretHash: secretHash,
     });
 
     await cognitoClient.send(command);
@@ -260,25 +313,41 @@ export async function exchangeOAuthCode(
   provider: 'github' | 'google'
 ): Promise<AuthTokens> {
   try {
-    // This would typically call Cognito's token endpoint
-    // For now, we'll use the hosted UI flow
     const cognitoDomain = `https://${process.env.NEXT_PUBLIC_COGNITO_DOMAIN}`;
     const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback/${provider}`;
 
+    const authHeader = buildAuthHeader();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+
+    // Add Basic Auth header if CLIENT_SECRET is configured
+    if (authHeader) {
+      headers['Authorization'] = authHeader;
+    }
+
+    const bodyParams: Record<string, string> = {
+      grant_type: 'authorization_code',
+      client_id: CLIENT_ID,
+      code: code,
+      redirect_uri: redirectUri,
+    };
+
+    // Include client_secret in body if not using Basic Auth
+    // (Cognito accepts both methods)
+    if (CLIENT_SECRET && !authHeader) {
+      bodyParams.client_secret = CLIENT_SECRET;
+    }
+
     const response = await fetch(`${cognitoDomain}/oauth2/token`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        client_id: CLIENT_ID,
-        code: code,
-        redirect_uri: redirectUri,
-      }),
+      headers,
+      body: new URLSearchParams(bodyParams),
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('OAuth token exchange failed:', errorText);
       throw new Error('OAuth token exchange failed');
     }
 
