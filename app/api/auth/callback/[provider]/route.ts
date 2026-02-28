@@ -122,10 +122,8 @@ export async function GET(request: NextRequest, { params }: { params: { provider
               .then(response => response.json())
               .then(data => {
                 if (data.success) {
-                  // Redirect to home page for now (dashboard not implemented yet)
-                  // TODO: Redirect to /dashboard when Task 4 is implemented
-                  // TODO: Redirect to /onboarding for new users when Task 20 is implemented
-                  window.location.href = '/';
+                  // Redirect to dashboard
+                  window.location.href = '/dashboard';
                 } else {
                   window.location.href = '/login?error=' + encodeURIComponent(data.error || 'oauth_failed');
                 }
