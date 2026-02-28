@@ -3,11 +3,11 @@
 // Email Verification Page for CodeLearn Platform
 // Task 3.9: Email verification flow
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email');
@@ -61,7 +61,7 @@ export default function VerifyEmailPage() {
     const newCode = [...code];
 
     for (let i = 0; i < pastedData.length; i++) {
-      newCode[i] = pastedData[i];
+      newCode[i] = pastedData[i] || '';
     }
 
     setCode(newCode);
@@ -260,5 +260,19 @@ export default function VerifyEmailPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+          <div className="text-white">Loading...</div>
+        </div>
+      }
+    >
+      <VerifyEmailContent />
+    </Suspense>
   );
 }
