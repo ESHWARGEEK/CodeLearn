@@ -29,21 +29,19 @@ export async function GET(request: NextRequest, { params }: { params: { userId: 
     );
 
     // Calculate statistics
-    const completedProjects = projects.filter(
-      (p: { status: string }) => p.status === 'completed'
-    ).length;
+    const completedProjects = projects.filter((p) => p.status === 'completed').length;
 
-    const activeProjects = projects.filter((p: { status: string }) => p.status === 'active');
+    const activeProjects = projects.filter((p) => p.status === 'active');
 
     // Calculate total learning hours (mock calculation - would be tracked in real app)
-    const totalHours = projects.reduce((sum: number, project: { progress: number }) => {
+    const totalHours = projects.reduce((sum: number, project) => {
       // Estimate: each project is ~10 hours, multiply by progress percentage
-      return sum + (project.progress / 100) * 10;
+      return sum + ((project.progress as number) / 100) * 10;
     }, 0);
 
     // Get current project (most recently updated active project)
     const currentProject = activeProjects.sort(
-      (a: { updatedAt: number }, b: { updatedAt: number }) => b.updatedAt - a.updatedAt
+      (a, b) => (b.updatedAt as number) - (a.updatedAt as number)
     )[0];
 
     return NextResponse.json({
@@ -58,7 +56,7 @@ export async function GET(request: NextRequest, { params }: { params: { userId: 
           averageProgress:
             projects.length > 0
               ? Math.round(
-                  projects.reduce((sum: number, p: { progress: number }) => sum + p.progress, 0) /
+                  projects.reduce((sum: number, p) => sum + (p.progress as number), 0) /
                     projects.length
                 )
               : 0,
@@ -74,9 +72,9 @@ export async function GET(request: NextRequest, { params }: { params: { userId: 
             }
           : null,
         recentProjects: projects
-          .sort((a: { updatedAt: number }, b: { updatedAt: number }) => b.updatedAt - a.updatedAt)
+          .sort((a, b) => (b.updatedAt as number) - (a.updatedAt as number))
           .slice(0, 5)
-          .map((p: { PK: string; name: string; progress: number; status: string }) => ({
+          .map((p) => ({
             id: p.PK.replace('PROJECT#', ''),
             name: p.name,
             progress: p.progress,
