@@ -26,34 +26,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Load user from localStorage on mount
+  // Load user from server on mount (using httpOnly cookie)
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const storedTokens = localStorage.getItem('auth-tokens');
-        if (storedTokens) {
-          const parsedTokens: AuthTokens = JSON.parse(storedTokens);
-          setTokens(parsedTokens);
+        // Fetch user details from server (cookie is sent automatically)
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include', // Include httpOnly cookies
+        });
 
-          // Fetch user details
-          const response = await fetch('/api/auth/me', {
-            headers: {
-              Authorization: `Bearer ${parsedTokens.accessToken}`,
-            },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            setUser(data.user);
-          } else {
-            // Token invalid, clear storage
-            localStorage.removeItem('auth-tokens');
-            setTokens(null);
-          }
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.data.user);
+          // Note: We don't store tokens in state anymore since they're in httpOnly cookies
+          // We only keep minimal token info if needed for UI (like expiry time)
         }
       } catch (error) {
         console.error('Failed to load user:', error);
-        localStorage.removeItem('auth-tokens');
       } finally {
         setIsLoading(false);
       }
@@ -64,27 +53,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
-      if (tokens) {
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${tokens.accessToken}`,
-          },
-        });
-      }
+      // Logout call will clear httpOnly cookies on server
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include', // Include cookies
+      });
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
       setUser(null);
       setTokens(null);
-      localStorage.removeItem('auth-tokens');
       router.push('/login');
     }
-  }, [tokens, router]);
+  }, [router]);
 
   const refreshToken = useCallback(async () => {
     try {
-      // Refresh token is stored in httpOnly cookie, no need to send in body
+      // Refresh token is stored in httpOnly cookie
       const response = await fetch('/api/auth/refresh', {
         method: 'POST',
         credentials: 'include', // Include cookies in request
@@ -96,8 +81,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Token refresh failed');
       }
 
+      // Update in-memory token info if needed (ephemeral only)
       setTokens(data.data.tokens);
-      localStorage.setItem('auth-tokens', JSON.stringify(data.data.tokens));
     } catch (error) {
       console.error('Token refresh error:', error);
       // If refresh fails, logout user
@@ -124,6 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
+          credentials: 'include', // Include cookies
         });
 
         const data = await response.json();
@@ -133,8 +119,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         setUser(data.data.user);
+        // Store token info in-memory (ephemeral) for auto-refresh logic
         setTokens(data.data.tokens);
-        localStorage.setItem('auth-tokens', JSON.stringify(data.data.tokens));
 
         // Redirect to dashboard
         router.push('/dashboard');
@@ -153,6 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password, name, acceptTerms: true }),
+          credentials: 'include', // Include cookies
         });
 
         const data = await response.json();
@@ -162,8 +149,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         setUser(data.data.user);
+        // Store token info in-memory (ephemeral) for auto-refresh logic
         setTokens(data.data.tokens);
-        localStorage.setItem('auth-tokens', JSON.stringify(data.data.tokens));
 
         // Redirect to onboarding
         router.push('/onboarding');
