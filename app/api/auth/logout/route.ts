@@ -6,9 +6,13 @@ import { signOutUser } from '@/lib/auth/cognito';
 
 export async function POST(request: NextRequest) {
   try {
-    // Get access token from Authorization header
+    // Get access token from Authorization header or cookie (fallback)
     const authHeader = request.headers.get('authorization');
-    const accessToken = authHeader?.replace('Bearer ', '');
+    const headerToken = authHeader?.replace('Bearer ', '');
+    const cookieToken = request.cookies.get('auth-token')?.value;
+
+    // Use header token first, fallback to cookie
+    const accessToken = headerToken || cookieToken;
 
     if (accessToken) {
       // Sign out user globally (invalidate all tokens)
