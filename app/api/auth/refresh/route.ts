@@ -39,10 +39,11 @@ export async function POST(request: NextRequest) {
     );
 
     // Update secure httpOnly cookie
+    // Using 'lax' instead of 'strict' to allow cookies after OAuth redirects
     response.cookies.set('auth-token', tokens.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: tokens.expiresIn,
       path: '/',
     });

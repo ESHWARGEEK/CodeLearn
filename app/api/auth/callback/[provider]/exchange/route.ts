@@ -46,10 +46,11 @@ export async function POST(request: NextRequest, { params }: { params: { provide
     });
 
     // Set secure httpOnly cookies
+    // Using 'lax' instead of 'strict' to allow cookies after OAuth redirects
     response.cookies.set('auth-token', tokens.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: tokens.expiresIn,
       path: '/',
     });
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest, { params }: { params: { provide
     response.cookies.set('refresh-token', tokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 30 * 24 * 60 * 60, // 30 days
       path: '/',
     });
