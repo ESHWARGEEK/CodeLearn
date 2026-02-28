@@ -61,23 +61,31 @@ AWS Console
 
 This makes signup instant - users can login immediately without email confirmation.
 
-### Via AWS Console
+### Via AWS Console (Updated for Current Interface)
 
 1. **Go to User Pool Settings**
    - AWS Console → Cognito → User pools → `codelearn-dev`
 
-2. **Edit Sign-up Experience**
-   - Click "Sign-up experience" tab
+2. **Edit User Pool Properties**
+   - Click the "Properties" tab (not "Sign-up experience")
+   - Scroll down to "User attribute verification and user account confirmation" section
    - Click "Edit" button
 
-3. **Modify Attribute Verification**
-   - Find "Attribute verification and user account confirmation" section
-   - Under "Attributes to verify", uncheck **Email**
-   - Or change to "No verification"
+3. **Modify Verification Settings**
+   - Find "Active attribute values for user account verification"
+   - Uncheck **Email** (or select "No verification")
+   - This disables the email verification requirement
 
 4. **Save Changes**
    - Click "Save changes" at the bottom
    - New users will no longer need email verification
+
+**Note**: The AWS Console interface may vary. If you don't see these exact options, look for:
+
+- "Properties" tab
+- "User attribute verification" section
+- "MFA and verifications" section
+- Or search for "verification" in the user pool settings
 
 ### Via AWS CLI
 

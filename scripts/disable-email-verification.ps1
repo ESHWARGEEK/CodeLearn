@@ -48,8 +48,11 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host ""
     Write-Host "You can disable it manually via AWS Console:" -ForegroundColor Yellow
     Write-Host "1. Go to Cognito → User pools → codelearn-dev" -ForegroundColor Gray
-    Write-Host "2. Sign-up experience tab → Edit" -ForegroundColor Gray
-    Write-Host "3. Uncheck 'Email' under 'Required attributes'" -ForegroundColor Gray
-    Write-Host "4. Save changes" -ForegroundColor Gray
+    Write-Host "2. Properties tab → Edit" -ForegroundColor Gray
+    Write-Host "3. Find 'User attribute verification' section" -ForegroundColor Gray
+    Write-Host "4. Uncheck 'Email' under verification attributes" -ForegroundColor Gray
+    Write-Host "5. Save changes" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "Note: AWS Console interface may vary by region/version" -ForegroundColor Gray
     exit 1
 }
