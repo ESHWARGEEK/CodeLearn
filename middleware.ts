@@ -62,7 +62,7 @@ export async function middleware(request: NextRequest) {
     const userTier = (payload['custom:tier'] as string) || 'free';
 
     // Check tier-based access
-    const allowedRoutes = tierAccess[userTier] || tierAccess.free;
+    const allowedRoutes = tierAccess[userTier] || tierAccess['free'];
     const hasAccess = allowedRoutes.some((route) => pathname.startsWith(route));
 
     if (!hasAccess) {

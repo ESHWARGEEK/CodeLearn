@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, refreshInterval);
 
     return () => clearTimeout(timer);
-  }, [tokens]);
+  }, [tokens, refreshToken]);
 
   const login = useCallback(
     async (email: string, password: string) => {
