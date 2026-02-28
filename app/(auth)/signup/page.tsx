@@ -73,12 +73,16 @@ export default function SignupPage() {
 
       // Generate cryptographically strong random state for CSRF protection
       const stateArray = new Uint8Array(32);
-      crypto.getRandomValues(stateArray);
+      if (typeof window !== 'undefined' && window.crypto) {
+        crypto.getRandomValues(stateArray);
+      }
       const state = Array.from(stateArray, (byte) => byte.toString(16).padStart(2, '0')).join('');
 
       // Store state in sessionStorage (more secure than localStorage for temporary data)
-      sessionStorage.setItem('oauth_state', state);
-      sessionStorage.setItem('oauth_state_timestamp', Date.now().toString());
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('oauth_state', state);
+        sessionStorage.setItem('oauth_state_timestamp', Date.now().toString());
+      }
 
       const redirectUri = `${window.location.origin}/api/auth/callback/${provider}`;
 
