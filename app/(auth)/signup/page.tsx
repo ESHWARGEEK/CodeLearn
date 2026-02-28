@@ -47,7 +47,7 @@ export default function SignupPage() {
     try {
       setIsLoading(true);
       setError(null);
-      await signup(data.email, data.password, data.name);
+      await signup(data.email, data.password, data.name, data.acceptTerms);
       // Redirect handled by auth context
     } catch (err: any) {
       setError(err.message || 'Failed to create account. Please try again.');

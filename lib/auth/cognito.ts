@@ -161,15 +161,38 @@ export async function signInUser(email: string, password: string): Promise<AuthT
 
 /**
  * Refresh access token using refresh token
+ * @param refreshToken - The refresh token
+ * @param accessToken - Optional access token to extract username for SECRET_HASH computation
  */
-export async function refreshAccessToken(refreshToken: string): Promise<AuthTokens> {
+export async function refreshAccessToken(
+  refreshToken: string,
+  accessToken?: string
+): Promise<AuthTokens> {
   try {
     const authParameters: Record<string, string> = {
       REFRESH_TOKEN: refreshToken,
     };
 
-    // Note: SECRET_HASH is not required for REFRESH_TOKEN_AUTH flow
-    // as the refresh token itself authenticates the request
+    // If CLIENT_SECRET is configured, we need to include SECRET_HASH
+    // For REFRESH_TOKEN_AUTH, we need the username to compute SECRET_HASH
+    if (CLIENT_SECRET && accessToken) {
+      try {
+        // Decode the access token to get the username
+        const payload = await verifyToken(accessToken);
+        const username = payload['cognito:username'] || payload.sub;
+
+        if (username) {
+          const secretHash = computeSecretHash(username);
+          if (secretHash) {
+            authParameters.SECRET_HASH = secretHash;
+          }
+        }
+      } catch (error) {
+        // If token verification fails, proceed without SECRET_HASH
+        // The refresh might still work if the client doesn't require it
+        console.warn('Could not extract username from access token for SECRET_HASH');
+      }
+    }
 
     const command = new InitiateAuthCommand({
       ClientId: CLIENT_ID,
@@ -333,11 +356,8 @@ export async function exchangeOAuthCode(
       redirect_uri: redirectUri,
     };
 
-    // Include client_secret in body if not using Basic Auth
-    // (Cognito accepts both methods)
-    if (CLIENT_SECRET && !authHeader) {
-      bodyParams.client_secret = CLIENT_SECRET;
-    }
+    // Note: CLIENT_SECRET is sent via Basic Auth header (preferred method)
+    // Cognito accepts both Basic Auth and client_secret in body, but Basic Auth is more secure
 
     const response = await fetch(`${cognitoDomain}/oauth2/token`, {
       method: 'POST',

@@ -146,7 +146,7 @@ export async function GET(request: NextRequest, { params }: { params: { provider
     console.error('OAuth callback error:', error);
 
     return NextResponse.redirect(
-      new URL(`/login?error=${encodeURIComponent(error.message || 'oauth_failed')}`, request.url)
+      new URL(`/login?error=${encodeURIComponent('oauth_failed')}`, request.url)
     );
   }
 }

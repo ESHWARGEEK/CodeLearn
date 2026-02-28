@@ -8,6 +8,8 @@ export async function POST(request: NextRequest) {
   try {
     // Get refresh token from httpOnly cookie
     const refreshToken = request.cookies.get('refresh-token')?.value;
+    // Get access token for username extraction (needed for SECRET_HASH)
+    const accessToken = request.cookies.get('auth-token')?.value;
 
     if (!refreshToken) {
       return NextResponse.json(
@@ -22,8 +24,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Refresh access token
-    const tokens = await refreshAccessToken(refreshToken);
+    // Refresh access token (pass old access token for SECRET_HASH computation)
+    const tokens = await refreshAccessToken(refreshToken, accessToken);
 
     // Update httpOnly cookie with new access token
     const response = NextResponse.json(

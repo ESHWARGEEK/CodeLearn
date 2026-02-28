@@ -69,7 +69,7 @@ export async function POST(request: NextRequest, { params }: { params: { provide
     return NextResponse.json(
       {
         success: false,
-        error: error.message || 'Failed to exchange authorization code',
+        error: 'Failed to exchange authorization code',
       },
       { status: 500 }
     );

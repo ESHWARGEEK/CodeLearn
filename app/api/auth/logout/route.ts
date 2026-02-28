@@ -8,7 +8,16 @@ export async function POST(request: NextRequest) {
   try {
     // Get access token from Authorization header or cookie (fallback)
     const authHeader = request.headers.get('authorization');
-    const headerToken = authHeader?.replace('Bearer ', '');
+
+    // Validate and extract Bearer token
+    let headerToken: string | undefined;
+    if (authHeader) {
+      const bearerMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+      if (bearerMatch && bearerMatch[1]) {
+        headerToken = bearerMatch[1].trim();
+      }
+    }
+
     const cookieToken = request.cookies.get('auth-token')?.value;
 
     // Use header token first, fallback to cookie
@@ -38,15 +47,16 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Logout error:', error);
 
-    // Even if logout fails, clear cookies
+    // Even if server-side logout fails, clear cookies for client-side logout
     const response = NextResponse.json(
       {
-        success: true,
-        data: {
-          message: 'Logged out successfully',
+        success: false,
+        error: {
+          message: 'Server-side token revocation failed',
+          details: 'Cookies cleared but global sign-out unsuccessful',
         },
       },
-      { status: 200 }
+      { status: 500 }
     );
 
     response.cookies.delete('auth-token');

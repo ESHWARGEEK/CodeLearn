@@ -13,7 +13,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name?: string) => Promise<void>;
+  signup: (email: string, password: string, name?: string, acceptTerms?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
 }
@@ -37,7 +37,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (response.ok) {
           const data = await response.json();
-          setUser(data.data.user);
+          // Validate payload structure before accessing nested properties
+          if (data?.data?.user) {
+            setUser(data.data.user);
+          } else {
+            console.error('Invalid user data structure received from /api/auth/me');
+          }
           // Note: We don't store tokens in state anymore since they're in httpOnly cookies
           // We only keep minimal token info if needed for UI (like expiry time)
         }
@@ -91,6 +96,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Token refresh failed');
       }
 
+      // Validate payload structure before accessing nested properties
+      if (!data?.data?.tokens) {
+        throw new Error('Invalid response structure from refresh API');
+      }
+
       // Update in-memory token info with issuedAt timestamp
       const tokensWithTimestamp = {
         ...data.data.tokens,
@@ -141,6 +151,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error(data.error?.message || 'Login failed');
         }
 
+        // Validate payload structure before accessing nested properties
+        if (!data?.data?.user || !data?.data?.tokens) {
+          console.error('Invalid response structure from login API:', data);
+          throw new Error('Invalid response from server. Please try again.');
+        }
+
         setUser(data.data.user);
         // Store token info in-memory (ephemeral) with issuedAt timestamp
         const tokensWithTimestamp = {
@@ -160,12 +176,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const signup = useCallback(
-    async (email: string, password: string, name?: string) => {
+    async (email: string, password: string, name?: string, acceptTerms: boolean = true) => {
       try {
         const response = await fetch('/api/auth/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, name, acceptTerms: true }),
+          body: JSON.stringify({ email, password, name, acceptTerms }),
           credentials: 'include', // Include cookies
         });
 
@@ -173,6 +189,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (!response.ok) {
           throw new Error(data.error?.message || 'Signup failed');
+        }
+
+        // Validate payload structure before accessing nested properties
+        if (!data?.data?.user || !data?.data?.tokens) {
+          console.error('Invalid response structure from signup API:', data);
+          throw new Error('Invalid response from server. Please try again.');
         }
 
         setUser(data.data.user);

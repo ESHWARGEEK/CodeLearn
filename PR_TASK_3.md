@@ -103,7 +103,7 @@ Tests are pending and can be completed now or deferred to Task 24 (E2E Testing).
 ### OAuth Flow (GitHub/Google)
 
 1. User clicks OAuth button
-2. Redirects to Cognito hosted UI
+2. Redirects to Cognito-hosted UI
 3. User authorizes with provider
 4. Cognito exchanges code for tokens
 5. Callback route stores tokens in cookies
@@ -199,7 +199,7 @@ Tests are pending and can be completed now or deferred to Task 24 (E2E Testing).
 
 5. **Test OAuth (Requires Configuration):**
    - Click GitHub/Google buttons
-   - Should redirect to Cognito hosted UI
+   - Should redirect to Cognito-hosted UI
    - After authorization, should redirect back with tokens
 
 ### Manual Testing Checklist
@@ -388,7 +388,12 @@ None. This is a new feature implementation.
 
 ## 🐛 Known Issues
 
-None. Authentication system is production-ready.
+No known issues at time of writing. However, comprehensive testing is pending:
+
+- Property-based tests (deferred to Task 24)
+- Unit tests (deferred to Task 24)
+
+The authentication system follows AWS Cognito best practices but requires full test coverage before production deployment.
 
 ---
 
