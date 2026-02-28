@@ -81,8 +81,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Token refresh failed');
       }
 
-      // Update in-memory token info if needed (ephemeral only)
-      setTokens(data.data.tokens);
+      // Update in-memory token info with issuedAt timestamp
+      const tokensWithTimestamp = {
+        ...data.data.tokens,
+        issuedAt: Date.now(),
+      };
+      setTokens(tokensWithTimestamp);
     } catch (error) {
       console.error('Token refresh error:', error);
       // If refresh fails, logout user
@@ -94,7 +98,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!tokens) return;
 
-    const refreshInterval = (tokens.expiresIn - 300) * 1000; // Refresh 5 minutes before expiry
+    // Calculate absolute expiry time
+    const issuedAt = tokens.issuedAt || Date.now();
+    const absoluteExpiry = issuedAt + tokens.expiresIn * 1000;
+
+    // Calculate delay: refresh 5 minutes (300000ms) before expiry
+    const delay = absoluteExpiry - 300000 - Date.now();
+
+    // Clamp delay to minimum 1 second to avoid aggressive loops
+    const refreshInterval = Math.max(delay, 1000);
+
     const timer = setTimeout(() => {
       refreshToken();
     }, refreshInterval);
@@ -119,8 +132,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         setUser(data.data.user);
-        // Store token info in-memory (ephemeral) for auto-refresh logic
-        setTokens(data.data.tokens);
+        // Store token info in-memory (ephemeral) with issuedAt timestamp
+        const tokensWithTimestamp = {
+          ...data.data.tokens,
+          issuedAt: Date.now(),
+        };
+        setTokens(tokensWithTimestamp);
 
         // Redirect to dashboard
         router.push('/dashboard');
@@ -149,8 +166,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         setUser(data.data.user);
-        // Store token info in-memory (ephemeral) for auto-refresh logic
-        setTokens(data.data.tokens);
+        // Store token info in-memory (ephemeral) with issuedAt timestamp
+        const tokensWithTimestamp = {
+          ...data.data.tokens,
+          issuedAt: Date.now(),
+        };
+        setTokens(tokensWithTimestamp);
 
         // Redirect to onboarding
         router.push('/onboarding');

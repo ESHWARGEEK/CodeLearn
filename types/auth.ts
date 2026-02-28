@@ -24,6 +24,7 @@ export interface AuthTokens {
   refreshToken: string;
   idToken: string;
   expiresIn: number;
+  issuedAt?: number; // Timestamp when tokens were issued (for refresh scheduling)
 }
 
 export interface LoginRequest {
