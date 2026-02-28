@@ -48,20 +48,45 @@ export default function LoginPage() {
   };
 
   const handleOAuthLogin = (provider: 'github' | 'google') => {
-    // Redirect to Cognito hosted UI for OAuth
-    const cognitoDomain = process.env.NEXT_PUBLIC_COGNITO_DOMAIN;
-    const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID;
-    const redirectUri = `${window.location.origin}/api/auth/callback/${provider}`;
+    try {
+      // Validate required environment variables
+      const cognitoDomain = process.env.NEXT_PUBLIC_COGNITO_DOMAIN;
+      const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID;
 
-    const authUrl =
-      `https://${cognitoDomain}/oauth2/authorize?` +
-      `client_id=${clientId}&` +
-      `response_type=code&` +
-      `scope=email+openid+profile&` +
-      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-      `identity_provider=${provider === 'github' ? 'GitHub' : 'Google'}`;
+      if (!cognitoDomain || !clientId) {
+        setError('OAuth configuration is missing. Please contact support.');
+        console.error('Missing OAuth environment variables:', {
+          cognitoDomain: !!cognitoDomain,
+          clientId: !!clientId,
+        });
+        return;
+      }
 
-    window.location.href = authUrl;
+      // Generate cryptographically strong random state for CSRF protection
+      const stateArray = new Uint8Array(32);
+      crypto.getRandomValues(stateArray);
+      const state = Array.from(stateArray, (byte) => byte.toString(16).padStart(2, '0')).join('');
+
+      // Store state in sessionStorage (more secure than localStorage for temporary data)
+      sessionStorage.setItem('oauth_state', state);
+      sessionStorage.setItem('oauth_state_timestamp', Date.now().toString());
+
+      const redirectUri = `${window.location.origin}/api/auth/callback/${provider}`;
+
+      const authUrl =
+        `https://${cognitoDomain}/oauth2/authorize?` +
+        `client_id=${clientId}&` +
+        `response_type=code&` +
+        `scope=email+openid+profile&` +
+        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+        `state=${state}&` +
+        `identity_provider=${provider === 'github' ? 'GitHub' : 'Google'}`;
+
+      window.location.href = authUrl;
+    } catch (err) {
+      console.error('OAuth initialization error:', err);
+      setError('Failed to initialize OAuth login. Please try again.');
+    }
   };
 
   return (
