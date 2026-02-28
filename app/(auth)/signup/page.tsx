@@ -341,7 +341,7 @@ export default function SignupPage() {
 
             {/* Footer */}
             <p className="text-center text-xs text-slate-500 dark:text-slate-500">
-              © 2024 CodeLearn. All rights reserved.
+              © {new Date().getFullYear()} CodeLearn. All rights reserved.
             </p>
           </div>
         </div>
