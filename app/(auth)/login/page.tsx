@@ -35,8 +35,11 @@ export default function LoginPage() {
     try {
       setIsLoading(true);
       setError(null);
+      console.log('Attempting login...');
       await login(data.email, data.password);
+      console.log('Login successful, should redirect to dashboard');
     } catch (err: any) {
+      console.error('Login error:', err);
       setError(err.message || 'Failed to log in. Please try again.');
     } finally {
       setIsLoading(false);

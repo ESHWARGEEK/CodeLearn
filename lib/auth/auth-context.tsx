@@ -166,7 +166,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setTokens(tokensWithTimestamp);
 
         // Redirect to dashboard
+        console.log('Login successful, redirecting to dashboard...');
         router.push('/dashboard');
+
+        // Fallback: force navigation if router.push doesn't work
+        setTimeout(() => {
+          if (typeof window !== 'undefined' && window.location.pathname !== '/dashboard') {
+            console.log('Router.push did not work, using window.location');
+            window.location.href = '/dashboard';
+          }
+        }, 100);
       } catch (error: any) {
         console.error('Login error:', error);
         throw error;
@@ -206,7 +215,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setTokens(tokensWithTimestamp);
 
         // Redirect to dashboard
+        console.log('Signup successful, redirecting to dashboard...');
         router.push('/dashboard');
+
+        // Fallback: force navigation if router.push doesn't work
+        setTimeout(() => {
+          if (typeof window !== 'undefined' && window.location.pathname !== '/dashboard') {
+            console.log('Router.push did not work, using window.location');
+            window.location.href = '/dashboard';
+          }
+        }, 100);
       } catch (error: any) {
         console.error('Signup error:', error);
         throw error;
