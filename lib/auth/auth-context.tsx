@@ -205,8 +205,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         setTokens(tokensWithTimestamp);
 
-        // Redirect to onboarding
-        router.push('/onboarding');
+        // Redirect to dashboard
+        router.push('/dashboard');
       } catch (error: any) {
         console.error('Signup error:', error);
         throw error;

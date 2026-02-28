@@ -11,7 +11,7 @@ Write-Host "Updating Cognito callback URLs..." -ForegroundColor Cyan
 aws cognito-idp update-user-pool-client `
   --user-pool-id $UserPoolId `
   --client-id $ClientId `
-  --callback-urls "$VercelUrl/api/auth/callback" "$CognitoDomain/oauth2/idpresponse" `
+  --callback-urls "$VercelUrl/api/auth/callback/google" "$VercelUrl/api/auth/callback/github" "$CognitoDomain/oauth2/idpresponse" `
   --logout-urls $VercelUrl `
   --allowed-o-auth-flows "code" "implicit" `
   --allowed-o-auth-scopes "email" "openid" "profile" `
@@ -23,7 +23,8 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ Cognito callback URLs updated successfully!" -ForegroundColor Green
     Write-Host ""
     Write-Host "Callback URLs configured:" -ForegroundColor Yellow
-    Write-Host "  - $VercelUrl/api/auth/callback" -ForegroundColor White
+    Write-Host "  - $VercelUrl/api/auth/callback/google" -ForegroundColor White
+    Write-Host "  - $VercelUrl/api/auth/callback/github" -ForegroundColor White
     Write-Host "  - $CognitoDomain/oauth2/idpresponse" -ForegroundColor White
     Write-Host ""
     Write-Host "Logout URL: $VercelUrl" -ForegroundColor Yellow

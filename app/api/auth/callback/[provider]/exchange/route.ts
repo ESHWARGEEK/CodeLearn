@@ -36,20 +36,23 @@ export async function POST(request: NextRequest, { params }: { params: { provide
     const user = await getUserFromToken(tokens.accessToken);
 
     // Create response with success
+    // Include onboardingComplete to determine redirect destination
     const response = NextResponse.json({
       success: true,
       user: {
         id: user.userId,
         email: user.email,
         name: user.name,
+        onboardingComplete: user.onboardingComplete,
       },
     });
 
     // Set secure httpOnly cookies
+    // Using 'lax' instead of 'strict' to allow cookies after OAuth redirects
     response.cookies.set('auth-token', tokens.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: tokens.expiresIn,
       path: '/',
     });
@@ -57,7 +60,7 @@ export async function POST(request: NextRequest, { params }: { params: { provide
     response.cookies.set('refresh-token', tokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 30 * 24 * 60 * 60, // 30 days
       path: '/',
     });

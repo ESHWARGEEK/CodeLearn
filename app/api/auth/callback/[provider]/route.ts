@@ -122,6 +122,7 @@ export async function GET(request: NextRequest, { params }: { params: { provider
               .then(response => response.json())
               .then(data => {
                 if (data.success) {
+                  // Redirect to dashboard
                   window.location.href = '/dashboard';
                 } else {
                   window.location.href = '/login?error=' + encodeURIComponent(data.error || 'oauth_failed');

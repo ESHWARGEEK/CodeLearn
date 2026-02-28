@@ -1,6 +1,6 @@
 # Vercel Environment Variables Checklist
 
-## ⚠️ IMPORTANT: Add Missing Variable Before Deployment
+## ⚠️ CRITICAL: Add Missing Variable Before Testing
 
 The following environment variable is **REQUIRED** but currently missing from Vercel:
 
@@ -32,7 +32,7 @@ Make sure ALL of these are set in Vercel:
 NEXT_PUBLIC_COGNITO_DOMAIN=codelearn-dev.auth.us-east-1.amazoncognito.com
 NEXT_PUBLIC_COGNITO_USER_POOL_ID=us-east-1_XXXXXXXXX
 NEXT_PUBLIC_COGNITO_CLIENT_ID=XXXXXXXXXXXXXXXXXXXXXXXXXX
-NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
+NEXT_PUBLIC_APP_URL=https://codelearn-lemon.vercel.app
 
 # Optional but recommended
 NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn
@@ -42,7 +42,7 @@ NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn
 
 Once you've added the missing variable to Vercel:
 
-1. This commit will trigger auto-deployment
+1. The next commit will trigger auto-deployment
 2. Vercel will rebuild with the new environment variables
 3. OAuth buttons should work correctly
 
@@ -53,17 +53,35 @@ Once you've added the missing variable to Vercel:
 - ✅ `NEXT_PUBLIC_COGNITO_CLIENT_ID` - Already set
 - ✅ `NEXT_PUBLIC_APP_URL` - Already set
 
-## Verification
+## Code Changes Made
 
-After deployment, check the browser console. The error:
+### Fixed Cookie SameSite Policy
 
-```
-Missing OAuth environment variables: Object
-```
+Changed from `sameSite: 'strict'` to `sameSite: 'lax'` in:
 
-Should be gone, and OAuth buttons should redirect to Cognito.
+- ✅ `/api/auth/callback/[provider]/exchange/route.ts`
+- ✅ `/api/auth/login/route.ts`
+- ✅ `/api/auth/refresh/route.ts`
+
+**Why**: `strict` cookies are not sent after OAuth redirects, causing 401 errors. `lax` allows cookies to be sent on top-level navigation (like OAuth callbacks) while still providing CSRF protection.
+
+## Verification Steps
+
+After deployment, test the OAuth flow:
+
+1. Go to https://codelearn-lemon.vercel.app/login
+2. Click "Google" or "GitHub" button
+3. Complete OAuth authorization
+4. Should redirect to `/dashboard` successfully
+5. Check browser console - no "Missing OAuth environment variables" error
+6. Check Network tab - `/api/auth/me` should return 200 (not 401)
+
+## Known Issues (Non-Blocking)
+
+- `/forgot-password` page not implemented yet (returns 404)
+- `/favicon.ico` missing (cosmetic issue)
 
 ---
 
-**Last Updated**: $(date)
-**Status**: Waiting for NEXT_PUBLIC_COGNITO_DOMAIN to be added to Vercel
+**Last Updated**: Production auth diagnosis complete
+**Status**: Ready for deployment after adding NEXT_PUBLIC_COGNITO_DOMAIN
