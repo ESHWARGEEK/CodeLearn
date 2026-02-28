@@ -88,23 +88,15 @@ export async function GET(request: NextRequest, { params }: { params: { userId: 
         remainingIntegrations: limit === -1 ? -1 : Math.max(0, limit - integrationsThisMonth),
         allTimeIntegrations: allIntegrations.length,
         recentIntegrations: integrations
-          .sort((a: { createdAt: number }, b: { createdAt: number }) => b.createdAt - a.createdAt)
+          .sort((a, b) => (b.createdAt as number) - (a.createdAt as number))
           .slice(0, 5)
-          .map(
-            (i: {
-              PK: string;
-              templateId: string;
-              projectId: string;
-              status: string;
-              createdAt: number;
-            }) => ({
-              id: i.PK.replace('INTEGRATION#', ''),
-              templateId: i.templateId,
-              projectId: i.projectId,
-              status: i.status,
-              createdAt: i.createdAt,
-            })
-          ),
+          .map((i) => ({
+            id: i.PK.replace('INTEGRATION#', ''),
+            templateId: i.templateId,
+            projectId: i.projectId,
+            status: i.status,
+            createdAt: i.createdAt,
+          })),
       },
     });
   } catch (error) {
