@@ -21,12 +21,12 @@
 **Features Implemented:**
 
 - Complete TypeScript type definitions for authentication
-- Cognito user signup, signin, and token management
+- Cognito user sign-up, sign-in, and token management
 - JWT token verification with JWKS
 - Token refresh functionality
 - OAuth code exchange for GitHub and Google
 - Password reset flow
-- Global signout
+- Global sign-out
 
 **Dependencies Added:**
 
@@ -52,7 +52,7 @@
 - GitHub OAuth button with Cognito integration
 - Google OAuth button with Cognito integration
 - Password reset link
-- Signup redirect link
+- Sign-up redirect link
 - Error handling and loading states
 - Dark theme styling with exact Tailwind classes
 
@@ -68,12 +68,12 @@
 
 **Files Created:**
 
-- `app/(auth)/signup/page.tsx` - Signup page component
+- `app/(auth)/signup/page.tsx` - Sign-up page component
 
 **Features Implemented:**
 
 - Exact HTML template from design document
-- Email/password signup form with validation
+- Email/password sign-up form with validation
 - Password strength requirements (8+ chars, uppercase, lowercase, number)
 - Full name field
 - Terms of Service checkbox
@@ -97,7 +97,7 @@
 
 **Files Created:**
 
-- `app/api/auth/signup/route.ts` - POST /api/auth/signup
+- `app/api/auth/signup/route.ts` - POST /api/auth/sign-up
 - `app/api/auth/login/route.ts` - POST /api/auth/login
 - `app/api/auth/refresh/route.ts` - POST /api/auth/refresh
 - `app/api/auth/logout/route.ts` - POST /api/auth/logout
@@ -158,7 +158,7 @@
 
 - `/` - Landing page
 - `/login` - Login page
-- `/signup` - Signup page
+- `/signup` - Sign-up page
 - `/forgot-password` - Password reset
 - `/terms` - Terms of Service
 - `/privacy` - Privacy Policy
@@ -269,7 +269,7 @@ NEXT_PUBLIC_APP_URL=https://codelearn-lemon.vercel.app
 
 - [x] Authentication utilities created with Cognito integration
 - [x] Login page matches exact design template
-- [x] Signup page matches exact design template
+- [x] Sign-up page matches exact design template
 - [x] API routes follow consistent response format
 - [x] Protected route middleware implemented
 - [x] JWT token verification working
@@ -327,7 +327,7 @@ NEXT_PUBLIC_APP_URL=https://codelearn-lemon.vercel.app
 
 ✅ Authentication utilities and types created  
 ✅ Login page built with OAuth and email/password  
-✅ Signup page built with validation  
+✅ Sign-up page built with validation  
 ✅ API routes created for authentication  
 ✅ Protected route middleware implemented  
 ✅ Exact design templates followed  

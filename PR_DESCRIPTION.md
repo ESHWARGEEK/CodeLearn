@@ -10,12 +10,12 @@ This PR implements the complete AWS infrastructure for the CodeLearn platform us
 
 - **4 CloudFormation Stacks** successfully deployed to `us-east-1`
 - **11 AWS Resources** created and configured
-- **Account:** 870631428381
+- **Account:** <YOUR_AWS_ACCOUNT_ID>
 - **Environment:** dev
 
 ### ✅ Vercel Deployment (Live)
 
-- **Production URL:** https://codelearn-lemon.vercel.app
+- **Production URL:** <YOUR_VERCEL_URL>
 - Next.js 14 app deployed and optimized
 - Build successful with infrastructure files excluded
 
@@ -69,17 +69,17 @@ This PR implements the complete AWS infrastructure for the CodeLearn platform us
   - CORS configured
 - **assets-dev** bucket:
   - CloudFront CDN distribution for fast global delivery
-  - CDN URL: https://dkqzabq78cmaf.cloudfront.net
+  - CDN URL: `<CLOUDFRONT_DISTRIBUTION_URL>`
   - AES-256 encryption
   - CORS configured
   - HTTPS redirect enforced
 
 ### Task 2.4: Cognito Authentication ✅
 
-- User Pool ID: `us-east-1_bNco2tmIx`
-- Client ID: `1belt192f8jpto6m9f9m3hm6l3`
-- Identity Pool ID: `us-east-1:2d1150f5-a0bf-4a8e-b2d1-a3f60cc349d0`
-- Domain: https://codelearn-dev.auth.us-east-1.amazoncognito.com
+- User Pool ID: `<USER_POOL_ID>`
+- Client ID: `<CLIENT_ID>`
+- Identity Pool ID: `<IDENTITY_POOL_ID>`
+- Domain: `<COGNITO_DOMAIN>`
 - Password policy: 8+ characters, uppercase, lowercase, number
 - OAuth providers configured:
   - GitHub OAuth (OIDC with email and profile scopes)
@@ -93,12 +93,12 @@ This PR implements the complete AWS infrastructure for the CodeLearn platform us
 ### Task 2.5: SQS Queues ✅
 
 - **ai-jobs-queue-dev**: Main queue for async AI operations
-  - URL: https://sqs.us-east-1.amazonaws.com/870631428381/codelearn-ai-jobs-queue-dev
+  - URL: `<SQS_QUEUE_URL>`
   - 5-minute visibility timeout
   - 4-day message retention
   - SQS-managed encryption
 - **ai-jobs-dlq-dev**: Dead-letter queue
-  - URL: https://sqs.us-east-1.amazonaws.com/870631428381/codelearn-ai-jobs-dlq-dev
+  - URL: `<SQS_DLQ_URL>`
   - 4-day message retention
   - Max 3 receives before moving to DLQ
 - CloudWatch Alarms:
@@ -170,7 +170,7 @@ codelearn/
 
 ```
 Region: us-east-1
-Account: 870631428381
+Account: <YOUR_AWS_ACCOUNT_ID>
 Environment: dev
 
 Stacks:
@@ -183,7 +183,7 @@ Stacks:
 ### Vercel Deployment: ✅ LIVE
 
 ```
-Production URL: https://codelearn-lemon.vercel.app
+Production URL: <YOUR_VERCEL_URL>
 Build Status: Success
 Framework: Next.js 14.2+
 Node Version: 20.x
@@ -253,7 +253,7 @@ Deployed successfully to production.
 ### OAuth Configuration ✅
 
 ```bash
-aws cognito-idp list-identity-providers --user-pool-id us-east-1_bNco2tmIx
+aws cognito-idp list-identity-providers --user-pool-id <USER_POOL_ID>
 ```
 
 Both GitHub and Google providers active.

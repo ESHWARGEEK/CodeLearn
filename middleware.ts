@@ -28,7 +28,15 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Allow public routes
-  if (publicRoutes.some((route) => pathname.startsWith(route))) {
+  // Special handling for '/' to avoid matching all routes
+  const isPublicRoute = publicRoutes.some((route) => {
+    if (route === '/') {
+      return pathname === '/';
+    }
+    return pathname.startsWith(route);
+  });
+
+  if (isPublicRoute) {
     return NextResponse.next();
   }
 
@@ -63,20 +71,24 @@ export async function middleware(request: NextRequest) {
 
     // Check tier-based access
     const allowedRoutes = tierAccess[userTier] || tierAccess['free'];
-    const hasAccess = allowedRoutes.some((route) => pathname.startsWith(route));
+    const hasAccess = allowedRoutes?.some((route) => pathname.startsWith(route)) ?? false;
 
     if (!hasAccess) {
       // Redirect to upgrade page if user doesn't have access
       return NextResponse.redirect(new URL('/upgrade', request.url));
     }
 
-    // Add user info to request headers for downstream use
-    const response = NextResponse.next();
-    response.headers.set('x-user-id', payload.sub || '');
-    response.headers.set('x-user-tier', userTier);
-    response.headers.set('x-user-email', payload.email || '');
+    // Add user info to request headers for downstream server handlers
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-user-id', payload.sub || '');
+    requestHeaders.set('x-user-tier', userTier);
+    requestHeaders.set('x-user-email', payload.email || '');
 
-    return response;
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
   } catch (error) {
     console.error('Token verification failed:', error);
 
