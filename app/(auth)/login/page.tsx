@@ -3,9 +3,10 @@
 // Login Page for CodeLearn Platform - New Dark Design
 // Modern split-screen layout with code background
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useSearchParams } from 'next/navigation';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,11 +18,23 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
+function LoginContent() {
   const { login } = useAuth();
+  const searchParams = useSearchParams();
+  const verified = searchParams.get('verified');
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showVerifiedMessage, setShowVerifiedMessage] = useState(verified === 'true');
+
+  // Hide verified message after 5 seconds
+  useEffect(() => {
+    if (showVerifiedMessage) {
+      const timer = setTimeout(() => setShowVerifiedMessage(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showVerifiedMessage]);
 
   const {
     register,
@@ -273,5 +286,19 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+          <div className="text-white">Loading...</div>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }
