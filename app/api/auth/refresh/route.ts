@@ -3,21 +3,27 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { refreshAccessToken } from '@/lib/auth/cognito';
-import { z } from 'zod';
-
-const refreshSchema = z.object({
-  refreshToken: z.string().min(1),
-});
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    // Get refresh token from httpOnly cookie
+    const refreshToken = request.cookies.get('refresh-token')?.value;
 
-    // Validate request body
-    const validatedData = refreshSchema.parse(body);
+    if (!refreshToken) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'MISSING_REFRESH_TOKEN',
+            message: 'No refresh token provided',
+          },
+        },
+        { status: 401 }
+      );
+    }
 
     // Refresh access token
-    const tokens = await refreshAccessToken(validatedData.refreshToken);
+    const tokens = await refreshAccessToken(refreshToken);
 
     // Update httpOnly cookie with new access token
     const response = NextResponse.json(
@@ -42,21 +48,6 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error: any) {
     console.error('Token refresh error:', error);
-
-    // Handle validation errors
-    if (error.name === 'ZodError') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid input data',
-            details: error.errors,
-          },
-        },
-        { status: 400 }
-      );
-    }
 
     // Handle refresh errors
     return NextResponse.json(

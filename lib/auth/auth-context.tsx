@@ -62,6 +62,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadUser();
   }, []);
 
+  const logout = useCallback(async () => {
+    try {
+      if (tokens) {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${tokens.accessToken}`,
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+      setTokens(null);
+      localStorage.removeItem('auth-tokens');
+      router.push('/login');
+    }
+  }, [tokens, router]);
+
+  const refreshToken = useCallback(async () => {
+    try {
+      // Refresh token is stored in httpOnly cookie, no need to send in body
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include', // Include cookies in request
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error('Token refresh failed');
+      }
+
+      setTokens(data.data.tokens);
+      localStorage.setItem('auth-tokens', JSON.stringify(data.data.tokens));
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      // If refresh fails, logout user
+      await logout();
+    }
+  }, [logout]);
+
   // Auto-refresh token before expiry
   useEffect(() => {
     if (!tokens) return;
@@ -131,51 +174,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     [router]
   );
-
-  const logout = useCallback(async () => {
-    try {
-      if (tokens) {
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${tokens.accessToken}`,
-          },
-        });
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setUser(null);
-      setTokens(null);
-      localStorage.removeItem('auth-tokens');
-      router.push('/login');
-    }
-  }, [tokens, router]);
-
-  const refreshToken = useCallback(async () => {
-    try {
-      if (!tokens?.refreshToken) return;
-
-      const response = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: tokens.refreshToken }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error('Token refresh failed');
-      }
-
-      setTokens(data.data.tokens);
-      localStorage.setItem('auth-tokens', JSON.stringify(data.data.tokens));
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      // If refresh fails, logout user
-      await logout();
-    }
-  }, [tokens, logout]);
 
   const value: AuthContextType = {
     user,
