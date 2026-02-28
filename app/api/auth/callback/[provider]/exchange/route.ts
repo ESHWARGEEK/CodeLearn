@@ -36,12 +36,14 @@ export async function POST(request: NextRequest, { params }: { params: { provide
     const user = await getUserFromToken(tokens.accessToken);
 
     // Create response with success
+    // Include onboardingComplete to determine redirect destination
     const response = NextResponse.json({
       success: true,
       user: {
         id: user.userId,
         email: user.email,
         name: user.name,
+        onboardingComplete: user.onboardingComplete,
       },
     });
 

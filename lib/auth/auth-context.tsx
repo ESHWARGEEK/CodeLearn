@@ -165,8 +165,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         setTokens(tokensWithTimestamp);
 
-        // Redirect to dashboard
-        router.push('/dashboard');
+        // Redirect to home page (dashboard not implemented yet)
+        // TODO: Change to /dashboard when Task 4 is implemented
+        router.push('/');
       } catch (error: any) {
         console.error('Login error:', error);
         throw error;
@@ -205,8 +206,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         setTokens(tokensWithTimestamp);
 
-        // Redirect to onboarding
-        router.push('/onboarding');
+        // Redirect to home page (onboarding not implemented yet)
+        // TODO: Change to /onboarding when Task 20 is implemented
+        router.push('/');
       } catch (error: any) {
         console.error('Signup error:', error);
         throw error;
