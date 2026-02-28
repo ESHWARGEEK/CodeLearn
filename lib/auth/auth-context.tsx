@@ -53,9 +53,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
-      // Logout call will clear httpOnly cookies on server
+      // Always call logout endpoint to clear server-side httpOnly cookies
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      // Conditionally add Authorization header if tokens exist
+      if (tokens?.accessToken) {
+        headers['Authorization'] = `Bearer ${tokens.accessToken}`;
+      }
+
       await fetch('/api/auth/logout', {
         method: 'POST',
+        headers,
         credentials: 'include', // Include cookies
       });
     } catch (error) {
@@ -65,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setTokens(null);
       router.push('/login');
     }
-  }, [router]);
+  }, [tokens, router]);
 
   const refreshToken = useCallback(async () => {
     try {
