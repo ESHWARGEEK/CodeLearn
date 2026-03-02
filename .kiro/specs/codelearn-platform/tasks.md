@@ -187,7 +187,7 @@ This implementation plan breaks down the CodeLearn AI Learning & Developer Produ
   - Tests (3.6-3.8) pending - can be completed now or in Task 24
   - Next: Complete tests OR move to Task 4 (Dashboard)
   
-  - [ ]* 3.6 Write property test for OAuth authentication flow
+  - [ ] 3.6 Write property test for OAuth authentication flow
     - **Property 1: OAuth Authentication Flow**
     - **Validates: Requirements 1.2, 1.3**
     - Test that OAuth flow creates valid user account with JWT tokens
@@ -195,24 +195,38 @@ This implementation plan breaks down the CodeLearn AI Learning & Developer Produ
     - Verify tokens are valid and user profile is created in DynamoDB
     - _Commit: `test: add property test for OAuth authentication`_
   
-  - [ ]* 3.7 Write property test for token refresh round trip
+  - [ ] 3.7 Write property test for token refresh round trip
     - **Property 3: Token Refresh Round Trip**
     - **Validates: Requirements 1.5, 1.6**
     - Test that expired access token can be refreshed without re-login
     - Verify new access token is valid and has correct expiration
     - _Commit: `test: add property test for token refresh`_
   
-  - [ ]* 3.8 Write unit tests for authentication
+  - [ ] 3.8 Write unit tests for authentication
     - Test email/password validation (valid/invalid formats)
     - Test password strength requirements
     - Test token invalidation on logout
     - Test authorization by tier (free, pro, team)
     - _Commit: `test: add unit tests for authentication`_
+  
+  - [x] 3.9 Implement email verification flow (Future Enhancement)
+    - Create app/(auth)/verify-email/page.tsx for verification code entry
+    - Build VerificationCodeInput component with 6-digit code input
+    - Implement POST /api/auth/verify API route using confirmSignUp from cognito.ts
+    - Add "Resend Code" button with rate limiting (1 per minute)
+    - Implement POST /api/auth/resend-code API route
+    - Redirect to login page after successful verification
+    - Show error messages for invalid/expired codes
+    - Customize Cognito email templates with branding
+    - Update signup flow to redirect to /verify-email instead of home
+    - _Requirements: 1.4, Production Security Best Practices_
+    - _Note: Currently disabled for development. Enable in Cognito for production._
+    - _Commit: `feat: implement email verification flow`_
     - _PR: Create pull request "Authentication System"_
 
 
 - [ ] 4. Dashboard and Navigation Components
-  - [ ] 4.1 Create global navigation bar
+  - [x] 4.1 Create global navigation bar
     - Build Navbar component using exact HTML from AWS_project/design.md
     - Implement logo, navigation links (Learning, Developer, Projects)
     - Add search bar with Cmd+K shortcut
@@ -222,7 +236,7 @@ This implementation plan breaks down the CodeLearn AI Learning & Developer Produ
     - _Requirements: Design: Navbar Component_
     - _Commit: `feat: create global navigation bar`_
   
-  - [ ] 4.2 Build dashboard page with statistics
+  - [x] 4.2 Build dashboard page with statistics
     - Create app/(dashboard)/dashboard/page.tsx
     - Implement StatsCard components (completed projects, hours, integrations)
     - Add "Continue Learning" section with recent projects
@@ -232,7 +246,7 @@ This implementation plan breaks down the CodeLearn AI Learning & Developer Produ
     - _Requirements: Design: Dashboard Component, StatsCard Component_
     - _Commit: `feat: implement dashboard with statistics`_
   
-  - [ ] 4.3 Create reusable UI components
+  - [x] 4.3 Create reusable UI components
     - Build StatsCard component with animated number counter and trend indicator
     - Build ProjectCard component with project metadata and preview
     - Build AIMentorChat component with message bubbles and streaming responses
@@ -241,7 +255,7 @@ This implementation plan breaks down the CodeLearn AI Learning & Developer Produ
     - _Requirements: Design: Shared Components_
     - _Commit: `feat: create reusable UI components`_
   
-  - [ ] 4.4 Implement API routes for dashboard data
+  - [x] 4.4 Implement API routes for dashboard data
     - Create GET /api/learning/progress/{userId} for learning statistics
     - Create GET /api/developer/usage/{userId} for integration usage
     - Fetch data from DynamoDB (users, projects, integrations tables)
@@ -256,15 +270,15 @@ This implementation plan breaks down the CodeLearn AI Learning & Developer Produ
     - _Commit: `test: add unit tests for dashboard components`_
     - _PR: Create pull request "Dashboard and Navigation"_
 
-- [ ] 5. Checkpoint - Verify authentication and dashboard
+- [x] 5. Checkpoint - Verify authentication and dashboard
   - Ensure all tests pass (unit and property tests)
   - Verify login/signup flows work end-to-end
   - Verify dashboard displays correctly with mock data
   - Ask the user if questions arise
 
 
-- [ ] 6. AI Agent System - Curator and Teacher Agents
-  - [ ] 6.1 Set up AWS Bedrock integration
+- [-] 6. AI Agent System - Curator and Teacher Agents
+  - [-] 6.1 Set up AWS Bedrock integration
     - Create lib/ai/bedrock.ts with AWS Bedrock SDK client
     - Configure Claude 3.5 Sonnet model (anthropic.claude-3-5-sonnet-20240620-v1:0)
     - Configure Llama 3.1 70B model (meta.llama3-1-70b-instruct-v1:0)
