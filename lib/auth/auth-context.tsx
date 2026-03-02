@@ -135,48 +135,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timer);
   }, [tokens, refreshToken]);
 
-  const login = useCallback(
-    async (email: string, password: string) => {
-      try {
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-          credentials: 'include', // Include cookies
-        });
+  const login = useCallback(async (email: string, password: string) => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include', // Include cookies
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (!response.ok) {
-          throw new Error(data.error?.message || 'Login failed');
-        }
-
-        // Validate payload structure before accessing nested properties
-        if (!data?.data?.user || !data?.data?.tokens) {
-          console.error('Invalid response structure from login API:', data);
-          throw new Error('Invalid response from server. Please try again.');
-        }
-
-        setUser(data.data.user);
-        // Store token info in-memory (ephemeral) with issuedAt timestamp
-        const tokensWithTimestamp = {
-          ...data.data.tokens,
-          issuedAt: Date.now(),
-        };
-        setTokens(tokensWithTimestamp);
-
-        // Redirect to dashboard - use window.location for reliable redirect
-        console.log('Login successful, redirecting to dashboard...');
-        if (typeof window !== 'undefined') {
-          window.location.href = '/dashboard';
-        }
-      } catch (error: any) {
-        console.error('Login error:', error);
-        throw error;
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Login failed');
       }
-    },
-    [router]
-  );
+
+      // Validate payload structure before accessing nested properties
+      if (!data?.data?.user || !data?.data?.tokens) {
+        console.error('Invalid response structure from login API:', data);
+        throw new Error('Invalid response from server. Please try again.');
+      }
+
+      setUser(data.data.user);
+      // Store token info in-memory (ephemeral) with issuedAt timestamp
+      const tokensWithTimestamp = {
+        ...data.data.tokens,
+        issuedAt: Date.now(),
+      };
+      setTokens(tokensWithTimestamp);
+
+      // Wait a moment for cookies to be set, then redirect
+      console.log('Login successful, redirecting to dashboard...');
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      if (typeof window !== 'undefined') {
+        window.location.href = '/dashboard';
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  }, []);
 
   const signup = useCallback(
     async (email: string, password: string, name?: string, acceptTerms: boolean = true) => {
@@ -216,8 +215,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         setTokens(tokensWithTimestamp);
 
-        // Redirect to dashboard - use window.location for reliable redirect
+        // Wait a moment for cookies to be set, then redirect
         console.log('Signup successful, redirecting to dashboard...');
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         if (typeof window !== 'undefined') {
           window.location.href = '/dashboard';
         }
