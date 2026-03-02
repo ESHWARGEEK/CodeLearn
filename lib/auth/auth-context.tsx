@@ -45,8 +45,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           // Note: We don't store tokens in state anymore since they're in httpOnly cookies
           // We only keep minimal token info if needed for UI (like expiry time)
+        } else if (response.status === 401) {
+          // 401 is expected when not logged in - don't log as error
+          console.log('No active session found');
         }
       } catch (error) {
+        // Only log actual errors, not expected 401s
         console.error('Failed to load user:', error);
       } finally {
         setIsLoading(false);
