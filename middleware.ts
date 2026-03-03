@@ -44,6 +44,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Get token from cookie
+  const token = request.cookies.get('auth-token')?.value;
+
   // Simplified: Just check if token exists, don't validate it
   // This prevents 401 errors and makes auth simpler
   if (!token) {
