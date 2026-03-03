@@ -26,34 +26,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Load user from server on mount (using httpOnly cookie)
+  // Simplified: Don't try to load user on mount
+  // User will be set after successful login/signup
+  // This prevents 401 errors on initial page load
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        // Fetch user details from server (cookie is sent automatically)
-        const response = await fetch('/api/auth/me', {
-          credentials: 'include', // Include httpOnly cookies
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          // Validate payload structure before accessing nested properties
-          if (data?.data?.user) {
-            setUser(data.data.user);
-          } else {
-            console.error('Invalid user data structure received from /api/auth/me');
-          }
-          // Note: We don't store tokens in state anymore since they're in httpOnly cookies
-          // We only keep minimal token info if needed for UI (like expiry time)
-        }
-      } catch (error) {
-        console.error('Failed to load user:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadUser();
+    setIsLoading(false);
   }, []);
 
   const logout = useCallback(async () => {
