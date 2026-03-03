@@ -114,26 +114,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [logout]);
 
-  // Auto-refresh token before expiry
-  useEffect(() => {
-    if (!tokens) return;
-
-    // Calculate absolute expiry time
-    const issuedAt = tokens.issuedAt || Date.now();
-    const absoluteExpiry = issuedAt + tokens.expiresIn * 1000;
-
-    // Calculate delay: refresh 5 minutes (300000ms) before expiry
-    const delay = absoluteExpiry - 300000 - Date.now();
-
-    // Clamp delay to minimum 1 second to avoid aggressive loops
-    const refreshInterval = Math.max(delay, 1000);
-
-    const timer = setTimeout(() => {
-      refreshToken();
-    }, refreshInterval);
-
-    return () => clearTimeout(timer);
-  }, [tokens, refreshToken]);
+  // Simplified: No auto-refresh token logic
+  // Token will be valid for its full duration, then user needs to re-login
 
   const login = useCallback(
     async (email: string, password: string) => {

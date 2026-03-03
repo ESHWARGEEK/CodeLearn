@@ -17,13 +17,6 @@ const protectedRoutes = [
 // Define public routes (no authentication required)
 const publicRoutes = ['/', '/login', '/signup', '/forgot-password', '/terms', '/privacy'];
 
-// Define tier-based access control
-const tierAccess: Record<string, string[]> = {
-  free: ['/dashboard', '/learning', '/portfolio', '/settings', '/onboarding'],
-  pro: ['/dashboard', '/learning', '/developer', '/portfolio', '/settings', '/onboarding'],
-  team: ['/dashboard', '/learning', '/developer', '/portfolio', '/settings', '/onboarding'],
-};
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -63,25 +56,13 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    // Verify JWT token
+    // Simplified: Just verify token exists and is valid (basic check)
+    // No complex tier-based access control for now
     const payload = await verifyToken(token);
 
-    // Extract user tier from token
-    const userTier = (payload['custom:tier'] as string) || 'free';
-
-    // Check tier-based access
-    const allowedRoutes = tierAccess[userTier] || tierAccess['free'];
-    const hasAccess = allowedRoutes?.some((route) => pathname.startsWith(route)) ?? false;
-
-    if (!hasAccess) {
-      // Redirect to upgrade page if user doesn't have access
-      return NextResponse.redirect(new URL('/upgrade', request.url));
-    }
-
-    // Add user info to request headers for downstream server handlers
+    // Add basic user info to request headers
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set('x-user-id', payload.sub || '');
-    requestHeaders.set('x-user-tier', userTier);
     requestHeaders.set('x-user-email', payload.email || '');
 
     return NextResponse.next({
@@ -90,14 +71,11 @@ export async function middleware(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Token verification failed:', error);
-
-    // Redirect to login if token is invalid or expired
+    // If token verification fails, just redirect to login
+    // No complex error handling
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
-    loginUrl.searchParams.set('error', 'session_expired');
 
-    // Clear invalid token
     const response = NextResponse.redirect(loginUrl);
     response.cookies.delete('auth-token');
     response.cookies.delete('refresh-token');
