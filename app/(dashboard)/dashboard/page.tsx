@@ -178,7 +178,7 @@ export default function DashboardPage() {
                 <span className="text-gray-400">{stats.level}</span>
               </div>
             </div>
-            <p className="text-gray-400">You're on a roll. Let's keep building.</p>
+            <p className="text-gray-400">You&apos;re on a roll. Let&apos;s keep building.</p>
           </div>
 
           {/* Stats Cards */}
@@ -315,7 +315,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="bg-[#0F1419] border border-[#2D3748] rounded-lg p-4 mb-4">
                   <p className="text-sm text-gray-300">
-                    "Hey Alex! I noticed you paused on the Authentication Flow. Want a quick refresher on JWTs?"
+                    &quot;Hey Alex! I noticed you paused on the Authentication Flow. Want a quick refresher on JWTs?&quot;
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -336,8 +336,9 @@ export default function DashboardPage() {
                 </div>
                 <div className="bg-[#0F1419] border border-[#2D3748] rounded-lg p-3 mb-3 font-mono text-xs text-gray-300">
                   <span className="text-purple-400">function</span>{' '}
-                  <span className="text-blue-400">reverseList</span>(head) {'{\n'}
-                  <span className="text-gray-500">  // Your code here...</span>
+                  <span className="text-blue-400">reverseList</span>(head) {'{'}
+                  {'\n'}
+                  <span className="text-gray-500">  {'//'} Your code here...</span>
                   {'\n}'}
                 </div>
                 <button className="w-full bg-[#2D3748] hover:bg-[#374151] text-white text-sm py-2 rounded-lg transition-colors border border-dashed border-gray-600">
