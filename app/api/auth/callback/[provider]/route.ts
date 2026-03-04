@@ -166,7 +166,13 @@ export async function GET(request: NextRequest, { params }: { params: { provider
                 const data = await response.json();
                 
                 if (data.success) {
+                  // Store user data in sessionStorage for auth context to pick up
+                  if (data.user) {
+                    sessionStorage.setItem('oauth_user', JSON.stringify(data.user));
+                  }
+                  
                   // Success! Redirect to dashboard
+                  // The dashboard will load user from sessionStorage
                   window.location.href = '/dashboard';
                 } else {
                   // Show error and redirect after 2 seconds
