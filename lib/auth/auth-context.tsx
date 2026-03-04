@@ -26,10 +26,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Simplified: Don't try to load user on mount
-  // User will be set after successful login/signup
-  // This prevents 401 errors on initial page load
+  // Load user from sessionStorage if OAuth login just completed
   useEffect(() => {
+    const oauthUser = sessionStorage.getItem('oauth_user');
+    if (oauthUser) {
+      try {
+        const userData = JSON.parse(oauthUser);
+        setUser(userData);
+        sessionStorage.removeItem('oauth_user'); // Clear after loading
+      } catch (error) {
+        console.error('Failed to parse OAuth user data:', error);
+      }
+    }
     setIsLoading(false);
   }, []);
 

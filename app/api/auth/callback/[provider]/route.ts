@@ -122,7 +122,13 @@ export async function GET(request: NextRequest, { params }: { params: { provider
               .then(response => response.json())
               .then(data => {
                 if (data.success) {
-                  // Redirect to dashboard
+                  // Store user data in sessionStorage for auth context to pick up
+                  if (data.user) {
+                    sessionStorage.setItem('oauth_user', JSON.stringify(data.user));
+                  }
+                  
+                  // Success! Redirect to dashboard
+                  // The dashboard will load user from sessionStorage
                   window.location.href = '/dashboard';
                 } else {
                   window.location.href = '/login?error=' + encodeURIComponent(data.error || 'oauth_failed');
