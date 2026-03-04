@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { putItem, TABLES } from '@/lib/db/dynamodb';
 import { sendAIJobMessage } from '@/lib/queue/sqs';
+import { getLearningPathsByTechnology } from '@/lib/db/learning-paths';
 
 // Validation schema
 const CurateRequestSchema = z.object({
@@ -38,6 +39,34 @@ export async function POST(request: NextRequest) {
     }
 
     const { technology, userId } = validationResult.data;
+
+    // Check cache first - if we have all 3 difficulty levels cached, return immediately
+    const cachedPaths = await getLearningPathsByTechnology(technology);
+    
+    if (cachedPaths.length === 3) {
+      // All difficulty levels are cached (beginner, intermediate, advanced)
+      console.log(`[CurateAPI] Cache hit for ${technology} - returning cached results`);
+      
+      // Return cached results immediately without creating a job
+      return NextResponse.json({
+        success: true,
+        data: {
+          cached: true,
+          projects: cachedPaths.map((path) => ({
+            id: path.projectId,
+            name: path.name,
+            description: path.description,
+            difficulty: path.SK.replace('DIFF#', ''),
+            githubUrl: path.githubUrl,
+            estimatedHours: path.estimatedHours,
+            techStack: path.tasks.length > 0 ? ['react', 'typescript'] : [], // TODO: Extract from tasks
+            tasks: path.tasks,
+          })),
+        },
+      });
+    }
+
+    console.log(`[CurateAPI] Cache miss for ${technology} (${cachedPaths.length}/3 cached) - queuing AI job`);
 
     // Generate job ID
     const jobId = uuidv4();
