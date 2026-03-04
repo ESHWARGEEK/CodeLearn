@@ -119,26 +119,64 @@ const difficultyColors = {
   Advanced: 'bg-purple-500/20 text-purple-300',
 };
 
+// Helper functions to map technology IDs to UI properties
+const getDifficultyForTech = (techId: string): 'Beginner' | 'Intermediate' | 'Advanced' => {
+  const difficultyMap: Record<string, 'Beginner' | 'Intermediate' | 'Advanced'> = {
+    react: 'Intermediate',
+    vue: 'Beginner',
+    nextjs: 'Advanced',
+    nodejs: 'Intermediate',
+    typescript: 'Intermediate',
+    python: 'Beginner',
+    express: 'Intermediate',
+    tailwind: 'Beginner',
+  };
+  return difficultyMap[techId] || 'Intermediate';
+};
+
+const getColorForTech = (techId: string): 'indigo' | 'violet' | 'pink' | 'emerald' | 'blue' | 'orange' => {
+  const colorMap: Record<string, 'indigo' | 'violet' | 'pink' | 'emerald' | 'blue' | 'orange'> = {
+    react: 'blue',
+    vue: 'emerald',
+    nextjs: 'indigo',
+    nodejs: 'emerald',
+    typescript: 'blue',
+    python: 'orange',
+    express: 'violet',
+    tailwind: 'pink',
+  };
+  return colorMap[techId] || 'indigo';
+};
+
 export default function TechnologySelector({ onSelect }: TechnologySelectorProps) {
   const [technologies, setTechnologies] = useState<Technology[]>([]);
   const [selectedTech, setSelectedTech] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API call - will be replaced with actual API call in task 5.2
     const loadTechnologies = async () => {
       setLoading(true);
       try {
-        // TODO: Replace with actual API call
-        // const response = await fetch('/api/learning/technologies');
-        // const data = await response.json();
-        // setTechnologies(data.technologies);
+        const response = await fetch('/api/learning/technologies');
+        const data = await response.json();
         
-        // Simulate network delay
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        setTechnologies(mockTechnologies);
+        if (data.success && data.data?.technologies) {
+          // Map API response to component format with additional UI properties
+          const enrichedTechnologies = data.data.technologies.map((tech: any) => ({
+            ...tech,
+            difficulty: getDifficultyForTech(tech.id),
+            color: getColorForTech(tech.id),
+          }));
+          setTechnologies(enrichedTechnologies);
+        } else {
+          // Fallback to mock data if API fails
+          console.warn('API returned unexpected format, using fallback data');
+          setTechnologies(mockTechnologies);
+        }
       } catch (error) {
         console.error('Failed to load technologies:', error);
+        // Fallback to mock data on error
+        setTechnologies(mockTechnologies);
       } finally {
         setLoading(false);
       }
