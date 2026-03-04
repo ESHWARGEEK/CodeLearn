@@ -86,8 +86,121 @@ Results are cached in DynamoDB with a 24-hour TTL to reduce API calls and improv
 
 The Curator Agent uses Llama 3.1 70B instead of Claude 3.5 Sonnet for cost optimization, as the ranking task is relatively simple and doesn't require complex reasoning.
 
+## Teacher Agent
+
+The Teacher Agent generates learning content and task breakdowns from GitHub repositories.
+
+### Features
+
+- **Repository Analysis**: Fetches and analyzes GitHub repository structure
+- **Framework Detection**: Automatically detects React, Next.js, Vue, Angular, and more
+- **Intelligent Task Generation**: Uses Claude 3.5 Sonnet to create 10-15 sequential learning tasks
+- **Difficulty-Aware**: Tailors tasks to beginner, intermediate, or advanced learners
+- **Comprehensive Metadata**: Includes hints, learning objectives, and time estimates
+
+### Usage
+
+```typescript
+import { TeacherAgent } from '@/lib/agents';
+
+const agent = new TeacherAgent();
+
+const result = await agent.generateTasks({
+  githubUrl: 'https://github.com/vercel/next.js/tree/canary/examples/blog-starter',
+  difficulty: 'intermediate',
+  technology: 'nextjs',
+});
+
+console.log(result.tasks); // 10-15 sequential tasks
+console.log(result.estimatedHours); // Total learning time
+```
+
+### Configuration
+
+The Teacher Agent requires the following environment variables:
+
+- `AWS_REGION`: AWS region for Bedrock (default: us-east-1)
+- `GITHUB_TOKEN`: GitHub personal access token for API access
+
+### Output Format
+
+```typescript
+{
+  projectId: "vercel-blog-starter",
+  projectName: "Blog Starter",
+  githubUrl: "https://github.com/vercel/next.js/tree/canary/examples/blog-starter",
+  difficulty: "intermediate",
+  tasks: [
+    {
+      taskId: "task-1",
+      title: "Set up Next.js project structure",
+      description: "Initialize a new Next.js project with TypeScript and configure the basic folder structure",
+      order: 1,
+      estimatedMinutes: 20,
+      hints: [
+        "Use create-next-app with TypeScript template",
+        "Set up src/ directory with components/, pages/, and lib/ folders"
+      ],
+      learningObjectives: [
+        "Understand Next.js project initialization",
+        "Learn folder structure best practices"
+      ],
+      completed: false
+    }
+  ],
+  estimatedHours: 12,
+  generatedAt: 1709251200000
+}
+```
+
+### Task Generation Process
+
+The Teacher Agent uses a multi-stage process:
+
+1. **Repository Fetching**: Gets the complete file structure from GitHub
+2. **Framework Detection**: Identifies the framework (React, Next.js, Vue, etc.)
+3. **Dependency Analysis**: Analyzes package.json for key dependencies
+4. **Structure Analysis**: Identifies components, pages, API routes, styles, and tests
+5. **AI Task Generation**: Uses Claude 3.5 Sonnet to generate tasks based on:
+   - Repository structure and complexity
+   - Detected framework and patterns
+   - Target difficulty level
+   - Educational best practices
+6. **Task Validation**: Ensures tasks are properly ordered, timed, and enriched
+
+### Difficulty Levels
+
+**Beginner:**
+- Simple, well-documented steps
+- Detailed explanations
+- 15-30 minute tasks
+- Focus on fundamentals
+
+**Intermediate:**
+- Moderate complexity
+- Real-world patterns
+- 30-45 minute tasks
+- Focus on practical skills
+
+**Advanced:**
+- Complex architectures
+- Production-ready practices
+- 30-60 minute tasks
+- Focus on optimization and scalability
+
+### Caching
+
+Results are cached in DynamoDB with a 24-hour TTL per repository to reduce API calls and improve performance.
+
+### Model Selection
+
+The Teacher Agent uses Claude 3.5 Sonnet for complex reasoning required to:
+- Understand repository structure and patterns
+- Generate coherent learning sequences
+- Create educational content with appropriate difficulty
+- Provide helpful hints without revealing solutions
+
 ## Future Agents
 
-- **Teacher Agent**: Generates learning content and task breakdowns (Claude 3.5 Sonnet)
 - **Code Agent**: Extracts templates and performs code integration (Claude 3.5 Sonnet)
 - **Mentor Agent**: Provides explanations and answers questions (Claude 3.5 Sonnet)

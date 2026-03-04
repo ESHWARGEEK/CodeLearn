@@ -87,14 +87,14 @@ This document tracks the implementation of the CodeLearn AI Learning & Developer
 **Status:** [ ] Not started  
 **Branch:** feature/task-6-learning-workspace
 
-- [ ] 6.1 Create ProjectWorkspace component
-- [ ] 6.2 Integrate Monaco Editor
-- [ ] 6.3 Build TaskList component
-- [ ] 6.4 Implement LivePreview component
-- [ ] 6.5 Create Teacher Agent (Claude 3.5)
-- [ ] 6.6 Implement GET /api/learning/project/{id}/tasks
-- [ ] 6.7 Add POST /api/learning/project/{id}/save
-- [ ] 6.8 Implement auto-save (30s interval)
+- [x] 6.1 Create ProjectWorkspace component
+- [x] 6.2 Integrate Monaco Editor
+- [x] 6.3 Build TaskList component
+- [x] 6.4 Implement LivePreview component
+- [x] 6.5 Create Teacher Agent (Claude 3.5)
+- [x] 6.6 Implement GET /api/learning/project/{id}/tasks
+- [x] 6.7 Add POST /api/learning/project/{id}/save
+- [x] 6.8 Implement auto-save (30s interval)
 
 ---
 
