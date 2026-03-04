@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 
 interface NavbarProps {
   user?: {
-    name: string;
+    name?: string;
     email: string;
     avatarUrl?: string;
     tier: 'free' | 'pro' | 'team';
@@ -89,12 +89,12 @@ export default function Navbar({ user }: NavbarProps) {
               {user.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
-                  alt={user.name}
+                  alt={user.name || user.email}
                   className="w-8 h-8 rounded-full bg-gray-700"
                 />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium">
-                  {user.name.charAt(0).toUpperCase()}
+                  {(user.name || user.email).charAt(0).toUpperCase()}
                 </div>
               )}
             </button>
@@ -102,7 +102,7 @@ export default function Navbar({ user }: NavbarProps) {
             {/* Dropdown menu (hidden by default, shown on hover) */}
             <div className="absolute right-0 mt-2 w-48 bg-[#1E293B] border border-[#334155] rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
               <div className="p-3 border-b border-[#334155]">
-                <p className="text-sm font-medium text-white truncate">{user.name}</p>
+                <p className="text-sm font-medium text-white truncate">{user.name || user.email}</p>
                 <p className="text-xs text-gray-400 truncate">{user.email}</p>
                 <p className="text-xs text-gray-500 mt-1 capitalize">{user.tier} Plan</p>
               </div>
