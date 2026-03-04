@@ -14,7 +14,7 @@ const protectedRoutes = [
 ];
 
 // Define public routes (no authentication required)
-const publicRoutes = ['/', '/login', '/signup', '/forgot-password', '/terms', '/privacy'];
+const publicRoutes = ['/', '/login', '/signup', '/terms', '/privacy'];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
