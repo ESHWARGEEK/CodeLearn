@@ -65,7 +65,7 @@ export async function saveLearningPath(
     expiresAt,
   };
 
-  await putItem(TABLES.LEARNING_PATHS, learningPath);
+  await putItem(TABLES.LEARNING_PATHS, learningPath as unknown as Record<string, unknown>);
   return learningPath;
 }
 
