@@ -198,7 +198,18 @@ export class CuratorAgent {
    */
   private async getReadme(fullName: string): Promise<string | null> {
     try {
-      const [owner, repo] = fullName.split('/');
+      const parts = fullName.split('/');
+      if (parts.length !== 2) {
+        console.warn(`[CuratorAgent] Invalid repository name format: ${fullName}`);
+        return null;
+      }
+      
+      const [owner, repo] = parts;
+      if (!owner || !repo) {
+        console.warn(`[CuratorAgent] Missing owner or repo in: ${fullName}`);
+        return null;
+      }
+      
       const response = await this.octokit.repos.getReadme({
         owner,
         repo,
