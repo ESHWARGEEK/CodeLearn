@@ -12,6 +12,7 @@ import {
   GetUserCommand,
   GlobalSignOutCommand,
   AdminGetUserCommand,
+  AdminConfirmSignUpCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { jwtVerify, createRemoteJWKSet } from 'jose';
 import * as crypto from 'crypto';
@@ -66,6 +67,7 @@ function buildAuthHeader(): string | undefined {
 
 /**
  * Sign up a new user with email and password
+ * Auto-confirms the user for smoother onboarding experience
  */
 export async function signUpUser(
   email: string,
@@ -87,9 +89,34 @@ export async function signUpUser(
     });
 
     const response = await cognitoClient.send(command);
+    const userId = response.UserSub!;
+
+    // Auto-confirm the user for smoother experience
+    // This eliminates the need for email verification
+    if (!response.UserConfirmed) {
+      try {
+        const confirmCommand = new AdminConfirmSignUpCommand({
+          UserPoolId: USER_POOL_ID,
+          Username: email,
+        });
+        await cognitoClient.send(confirmCommand);
+        
+        return {
+          userId,
+          userConfirmed: true,
+        };
+      } catch (confirmError) {
+        console.error('Auto-confirm error:', confirmError);
+        // If auto-confirm fails, return the original status
+        return {
+          userId,
+          userConfirmed: response.UserConfirmed || false,
+        };
+      }
+    }
 
     return {
-      userId: response.UserSub!,
+      userId,
       userConfirmed: response.UserConfirmed || false,
     };
   } catch (error: any) {
