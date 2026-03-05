@@ -81,10 +81,12 @@ async function main() {
     console.log(`Estimated Hours: ${advancedResult.estimatedHours}`);
     
     // Show learning objectives
-    console.log('\nLearning Objectives (First Task):');
-    advancedResult.tasks[0].learningObjectives.forEach((obj) => {
-      console.log(`- ${obj}`);
-    });
+    if (advancedResult.tasks[0]?.learningObjectives) {
+      console.log('\nLearning Objectives (First Task):');
+      advancedResult.tasks[0].learningObjectives.forEach((obj) => {
+        console.log(`- ${obj}`);
+      });
+    }
   } catch (error) {
     console.error('Error:', error);
   }

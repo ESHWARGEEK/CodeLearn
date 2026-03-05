@@ -91,6 +91,19 @@ export async function GET(
     const technology = learningPathKeyParts[1];
     const difficulty = learningPathKeyParts[3] as 'beginner' | 'intermediate' | 'advanced';
 
+    if (!technology || !difficulty) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'INVALID_LEARNING_PATH_KEY',
+            message: 'Invalid learning path key format',
+          },
+        },
+        { status: 400 }
+      );
+    }
+
     // Fetch the learning path
     const learningPath = await getLearningPath(technology, difficulty);
 

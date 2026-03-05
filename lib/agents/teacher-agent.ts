@@ -393,7 +393,7 @@ Generate the complete task list now:`;
    */
   private parseGitHubUrl(url: string): { owner: string; repo: string } {
     const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
-    if (!match) {
+    if (!match || !match[1] || !match[2]) {
       throw new Error('Invalid GitHub URL format');
     }
 
