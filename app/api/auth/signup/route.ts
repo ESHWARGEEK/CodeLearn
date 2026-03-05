@@ -19,30 +19,14 @@ export async function POST(request: NextRequest) {
     // Validate request body
     const validatedData = signupSchema.parse(body);
 
-    // Create user in Cognito
+    // Create user in Cognito (auto-confirmed)
     const result = await signUpUser(
       validatedData.email,
       validatedData.password,
       validatedData.name
     );
 
-    // If email verification is required (userConfirmed = false)
-    if (!result.userConfirmed) {
-      return NextResponse.json(
-        {
-          success: true,
-          data: {
-            userId: result.userId,
-            userConfirmed: false,
-            message: 'Please check your email for verification code',
-          },
-        },
-        { status: 201 }
-      );
-    }
-
-    // If email verification is disabled (userConfirmed = true), auto-login
-    // This happens when Cognito User Pool has email verification disabled
+    // Auto-login the user after successful registration
     const { signInUser, getUserFromToken } = await import('@/lib/auth/cognito');
 
     const tokens = await signInUser(validatedData.email, validatedData.password);
