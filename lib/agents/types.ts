@@ -51,3 +51,32 @@ export interface GitHubReadme {
   content: string;
   encoding: string;
 }
+
+// Teacher Agent Types
+
+export interface TeacherInput {
+  githubUrl: string;
+  difficulty: DifficultyLevel;
+  technology?: string;
+}
+
+export interface Task {
+  taskId: string;
+  title: string;
+  description: string;
+  order: number;
+  estimatedMinutes: number;
+  hints: string[];
+  learningObjectives: string[];
+  completed: boolean;
+}
+
+export interface TeacherOutput {
+  projectId: string;
+  projectName: string;
+  githubUrl: string;
+  difficulty: DifficultyLevel;
+  tasks: Task[];
+  estimatedHours: number;
+  generatedAt: number;
+}
