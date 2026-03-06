@@ -58,19 +58,44 @@ export default function AIMentorChat({ context, className }: AIMentorChatProps) 
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call to POST /api/ai/mentor/chat
-      // For now, simulate AI response
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Build conversation history from messages (exclude the welcome message)
+      const conversationHistory = messages
+        .slice(1) // Skip welcome message
+        .map((msg) => ({
+          role: msg.role === 'user' ? ('user' as const) : ('assistant' as const),
+          content: msg.content,
+        }));
+
+      // Call the AI Mentor API
+      const response = await fetch('/api/ai/mentor/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: input,
+          responseType: 'chat',
+          taskContext: context?.currentTask,
+          codeContext: context?.code,
+          conversationHistory,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error?.message || 'Failed to get response');
+      }
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'ai',
-        content:
-          'Great question! Let me help you with that. [This will be replaced with actual AI response from Claude 3.5]',
+        content: data.data.response,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
+      console.error('AI Mentor error:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'ai',
