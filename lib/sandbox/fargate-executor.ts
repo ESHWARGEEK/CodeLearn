@@ -48,8 +48,10 @@ export interface ExecuteResponse {
   status?: 'PENDING' | 'RUNNING' | 'STOPPED';
 }
 
+const MAX_FARGATE_TIMEOUT = 1800000; // 30 minutes
+
 /**
- * Execute code in Fargate task
+ * Execute code in Fargate task with timeout enforcement
  */
 export async function executeFargate(
   request: ExecuteRequest
@@ -57,11 +59,17 @@ export async function executeFargate(
   try {
     const ecsClient = getECSClient();
 
+    // Enforce maximum timeout of 30 minutes for Fargate
+    const effectiveTimeout = Math.min(
+      request.timeout || MAX_FARGATE_TIMEOUT,
+      MAX_FARGATE_TIMEOUT
+    );
+
     // Prepare environment variables for the task
     const environment = [
       { name: 'CODE', value: Buffer.from(request.code).toString('base64') },
       { name: 'LANGUAGE', value: request.language },
-      { name: 'TIMEOUT', value: String(request.timeout || 1800000) },
+      { name: 'TIMEOUT', value: String(effectiveTimeout) },
     ];
 
     // Run the Fargate task
@@ -106,6 +114,11 @@ export async function executeFargate(
 
     const taskArn = task.taskArn;
 
+    // Start timeout monitoring in background
+    monitorTaskTimeout(taskArn, effectiveTimeout).catch(error => {
+      console.error('Timeout monitoring error:', error);
+    });
+
     // Return task ARN for status polling
     return {
       success: true,
@@ -123,6 +136,48 @@ export async function executeFargate(
       ],
     };
   }
+}
+
+/**
+ * Monitor task and enforce timeout by stopping it if it exceeds the limit
+ */
+async function monitorTaskTimeout(
+  taskArn: string,
+  timeout: number
+): Promise<void> {
+  const startTime = Date.now();
+  const checkInterval = 5000; // Check every 5 seconds
+
+  const intervalId = setInterval(async () => {
+    const elapsed = Date.now() - startTime;
+
+    // Check if timeout exceeded
+    if (elapsed >= timeout) {
+      console.warn(`Task ${taskArn} exceeded timeout of ${timeout}ms, stopping task`);
+      clearInterval(intervalId);
+      
+      // Stop the task
+      const stopped = await stopTask(taskArn);
+      if (stopped) {
+        console.log(`Task ${taskArn} stopped due to timeout`);
+      } else {
+        console.error(`Failed to stop task ${taskArn} after timeout`);
+      }
+      return;
+    }
+
+    // Check if task is still running
+    try {
+      const status = await getTaskStatus(taskArn);
+      if (status.status === 'STOPPED') {
+        // Task completed or failed, stop monitoring
+        clearInterval(intervalId);
+      }
+    } catch (error) {
+      console.error('Error checking task status:', error);
+      clearInterval(intervalId);
+    }
+  }, checkInterval);
 }
 
 /**
@@ -159,10 +214,20 @@ export async function getTaskStatus(
     
     const lastStatus = task.lastStatus as 'PENDING' | 'RUNNING' | 'STOPPED';
 
-    // If task is stopped, check exit code
+    // If task is stopped, check exit code and stop reason
     if (lastStatus === 'STOPPED') {
       const container = task.containers?.[0];
       const exitCode = container?.exitCode;
+      const stopReason = task.stoppedReason || '';
+
+      // Check if task was stopped due to timeout
+      if (stopReason.includes('timeout') || stopReason.includes('User requested cancellation')) {
+        return {
+          success: false,
+          status: 'STOPPED',
+          errors: ['Execution timeout: Task exceeded maximum execution time'],
+        };
+      }
 
       if (exitCode === 0) {
         return {
@@ -222,10 +287,16 @@ export async function stopTask(taskArn: string): Promise<boolean> {
  * Check if Fargate execution is available
  */
 export function isFargateAvailable(): boolean {
+  // Read from process.env directly to support dynamic testing
+  const clusterArn = process.env.FARGATE_CLUSTER_ARN || '';
+  const taskDefinitionArn = process.env.FARGATE_TASK_DEFINITION_ARN || '';
+  const securityGroupId = process.env.FARGATE_SECURITY_GROUP_ID || '';
+  const subnetIds = process.env.FARGATE_SUBNET_IDS?.split(',') || [];
+  
   return !!(
-    CLUSTER_ARN &&
-    TASK_DEFINITION_ARN &&
-    SECURITY_GROUP_ID &&
-    SUBNET_IDS.length > 0
+    clusterArn &&
+    taskDefinitionArn &&
+    securityGroupId &&
+    subnetIds.length > 0
   );
 }

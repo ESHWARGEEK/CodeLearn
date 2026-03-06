@@ -24,6 +24,8 @@ export function setLambdaClient(client: LambdaClient | null) {
 }
 
 const FUNCTION_NAME = process.env.SANDBOX_EXECUTOR_FUNCTION_NAME || 'codelearn-sandbox-executor';
+const MAX_LAMBDA_TIMEOUT = 15000; // 15 seconds
+const DEFAULT_LAMBDA_TIMEOUT = 15000; // 15 seconds
 
 export interface ExecuteRequest {
   code: string;
@@ -48,10 +50,19 @@ export async function executeLambda(
   try {
     const lambdaClient = getLambdaClient();
     
+    // Enforce maximum timeout of 15 seconds
+    const effectiveTimeout = Math.min(
+      request.timeout || DEFAULT_LAMBDA_TIMEOUT,
+      MAX_LAMBDA_TIMEOUT
+    );
+    
     const command = new InvokeCommand({
       FunctionName: FUNCTION_NAME,
       InvocationType: 'RequestResponse',
-      Payload: JSON.stringify(request),
+      Payload: JSON.stringify({
+        ...request,
+        timeout: effectiveTimeout,
+      }),
     });
 
     const response = await lambdaClient.send(command);

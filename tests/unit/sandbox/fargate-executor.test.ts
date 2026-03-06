@@ -223,6 +223,14 @@ describe('Fargate Executor', () => {
   });
 
   describe('isFargateAvailable', () => {
+    beforeEach(() => {
+      // Ensure all environment variables are set before each test
+      process.env.FARGATE_CLUSTER_ARN = 'arn:aws:ecs:us-east-1:123456789012:cluster/test-cluster';
+      process.env.FARGATE_TASK_DEFINITION_ARN = 'arn:aws:ecs:us-east-1:123456789012:task-definition/test-task:1';
+      process.env.FARGATE_SECURITY_GROUP_ID = 'sg-12345';
+      process.env.FARGATE_SUBNET_IDS = 'subnet-1,subnet-2';
+    });
+
     it('should return true when all config is present', () => {
       expect(isFargateAvailable()).toBe(true);
     });
