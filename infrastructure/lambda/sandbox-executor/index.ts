@@ -54,6 +54,10 @@ export async function handler(
     };
   }
 
+  // Enforce maximum timeout of 15 seconds for Lambda
+  const MAX_LAMBDA_TIMEOUT = 15000;
+  const effectiveTimeout = Math.min(timeout, MAX_LAMBDA_TIMEOUT);
+
   try {
     // Capture console output
     const logs: string[] = [];
@@ -61,7 +65,7 @@ export async function handler(
 
     // Create isolated VM with security restrictions
     const vm = new VM({
-      timeout: Math.min(timeout, 15000), // Max 15 seconds
+      timeout: effectiveTimeout,
       sandbox: {
         console: {
           log: (...args: unknown[]) => {
@@ -83,12 +87,17 @@ export async function handler(
       fixAsync: true, // Fix async/await
     });
 
-    // Execute code in VM
+    // Execute code in VM with timeout enforcement
     let result;
     try {
       result = vm.run(code);
     } catch (error) {
-      errorLogs.push(error instanceof Error ? error.message : String(error));
+      // Check if error is a timeout error
+      if (error instanceof Error && error.message.includes('Script execution timed out')) {
+        errorLogs.push(`Execution timeout: Code exceeded ${effectiveTimeout}ms limit`);
+      } else {
+        errorLogs.push(error instanceof Error ? error.message : String(error));
+      }
     }
 
     const executionTime = Date.now() - startTime;
@@ -102,6 +111,15 @@ export async function handler(
     };
   } catch (error) {
     const executionTime = Date.now() - startTime;
+    
+    // Check if this is a timeout error
+    if (error instanceof Error && error.message.includes('Script execution timed out')) {
+      return {
+        success: false,
+        errors: [`Execution timeout: Code exceeded ${effectiveTimeout}ms limit`],
+        executionTime,
+      };
+    }
     
     return {
       success: false,

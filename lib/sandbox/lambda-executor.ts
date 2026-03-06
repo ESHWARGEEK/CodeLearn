@@ -5,6 +5,12 @@
  */
 
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+import {
+  LAMBDA_LIMITS,
+  enforceTimeout,
+  enforceOutputSize,
+  validateResourceRequest,
+} from './resource-limits';
 
 // Allow dependency injection for testing
 let lambdaClientInstance: LambdaClient | null = null;
@@ -29,6 +35,7 @@ export interface ExecuteRequest {
   code: string;
   language: 'javascript' | 'typescript';
   timeout?: number;
+  memory?: number;
 }
 
 export interface ExecuteResponse {
@@ -37,21 +44,49 @@ export interface ExecuteResponse {
   errors?: string[];
   executionTime?: number;
   previewUrl?: string;
+  resourceLimits?: {
+    memory: number;
+    timeout: number;
+    enforced: boolean;
+  };
 }
 
 /**
- * Execute code in Lambda sandbox
+ * Execute code in Lambda sandbox with resource limit enforcement
  */
 export async function executeLambda(
   request: ExecuteRequest
 ): Promise<ExecuteResponse> {
   try {
+    // Validate resource request against limits
+    const validation = validateResourceRequest(
+      {
+        timeout: request.timeout,
+        memory: request.memory,
+      },
+      LAMBDA_LIMITS
+    );
+
+    if (!validation.valid) {
+      return {
+        success: false,
+        errors: validation.errors,
+      };
+    }
+
     const lambdaClient = getLambdaClient();
+    
+    // Enforce resource limits
+    const effectiveTimeout = enforceTimeout(request.timeout, LAMBDA_LIMITS);
+    const effectiveMemory = LAMBDA_LIMITS.memory; // Lambda memory is fixed at deployment
     
     const command = new InvokeCommand({
       FunctionName: FUNCTION_NAME,
       InvocationType: 'RequestResponse',
-      Payload: JSON.stringify(request),
+      Payload: JSON.stringify({
+        ...request,
+        timeout: effectiveTimeout,
+      }),
     });
 
     const response = await lambdaClient.send(command);
@@ -76,10 +111,35 @@ export async function executeLambda(
           `Lambda execution error: ${response.FunctionError}`,
           ...(payload.errors || []),
         ],
+        resourceLimits: {
+          memory: effectiveMemory,
+          timeout: effectiveTimeout,
+          enforced: true,
+        },
       };
     }
 
-    return payload;
+    // Enforce output size limits
+    if (payload.output) {
+      const { output, truncated } = enforceOutputSize(payload.output, LAMBDA_LIMITS);
+      payload.output = output;
+      
+      if (truncated && payload.errors) {
+        payload.errors.push('Output was truncated due to size limits');
+      } else if (truncated) {
+        payload.errors = ['Output was truncated due to size limits'];
+      }
+    }
+
+    // Add resource limit information
+    return {
+      ...payload,
+      resourceLimits: {
+        memory: effectiveMemory,
+        timeout: effectiveTimeout,
+        enforced: true,
+      },
+    };
   } catch (error) {
     console.error('Lambda invocation failed:', error);
     return {

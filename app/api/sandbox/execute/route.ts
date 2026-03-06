@@ -12,20 +12,22 @@ import {
   storeExecutionResult,
   isResultStorageAvailable,
 } from '@/lib/sandbox/result-storage';
+import {
+  validateResourceRequest,
+  getResourceLimits,
+} from '@/lib/sandbox/resource-limits';
 
 interface ExecuteRequest {
   code: string;
   language: string;
   timeout?: number;
+  memory?: number;
   environment?: 'lambda' | 'fargate';
   userId?: string;
   projectId?: string;
 }
 
 const SUPPORTED_LANGUAGES = ['javascript', 'typescript'] as const;
-const DEFAULT_TIMEOUT = 15000; // 15 seconds for Lambda
-const MAX_LAMBDA_TIMEOUT = 15000; // 15 seconds
-const MAX_FARGATE_TIMEOUT = 1800000; // 30 minutes
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -33,7 +35,7 @@ export async function POST(request: NextRequest) {
   try {
     // Parse and validate request body
     const body: ExecuteRequest = await request.json();
-    const { code, language, timeout, environment = 'lambda', userId, projectId } = body;
+    const { code, language, timeout, memory, environment = 'lambda', userId, projectId } = body;
 
     // Validate required fields
     if (!code || typeof code !== 'string') {
@@ -90,11 +92,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate and set timeout
-    const maxTimeout = environment === 'lambda' ? MAX_LAMBDA_TIMEOUT : MAX_FARGATE_TIMEOUT;
-    const effectiveTimeout = timeout 
-      ? Math.min(timeout, maxTimeout) 
-      : (environment === 'lambda' ? DEFAULT_TIMEOUT : maxTimeout);
+    // Validate resource limits
+    const resourceLimits = getResourceLimits(environment);
+    const validation = validateResourceRequest(
+      { timeout, memory },
+      resourceLimits
+    );
+
+    if (!validation.valid) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'RESOURCE_LIMIT_EXCEEDED',
+            message: validation.errors.join('; '),
+          },
+        },
+        { status: 400 }
+      );
+    }
 
     // Validate code length (prevent abuse)
     if (code.length > 100000) { // 100KB limit
@@ -114,14 +130,15 @@ export async function POST(request: NextRequest) {
     if (environment === 'lambda') {
       if (!isLambdaAvailable()) {
         console.warn('Lambda executor not available, falling back to mock execution');
-        return await mockExecution(code, effectiveTimeout);
+        return await mockExecution(code, timeout || resourceLimits.timeout);
       }
 
       try {
         const result = await executeLambda({
           code,
           language: language as 'javascript' | 'typescript',
-          timeout: effectiveTimeout,
+          timeout,
+          memory,
         });
 
         // Validate result structure
@@ -211,7 +228,8 @@ export async function POST(request: NextRequest) {
         const result = await executeFargate({
           code,
           language: language as 'javascript' | 'typescript',
-          timeout: effectiveTimeout,
+          timeout,
+          memory,
         });
 
         // Validate result structure
