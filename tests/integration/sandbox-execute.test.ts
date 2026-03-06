@@ -163,9 +163,9 @@ describe('POST /api/sandbox/execute', () => {
     const response = await POST(request);
     const data = await response.json();
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error.code).toBe('EXECUTION_FAILED');
+    expect(data.error.code).toBe('INVALID_JSON');
   });
 
   it('should default to lambda environment', async () => {
