@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Terminal, AlertCircle, Info, AlertTriangle, CheckCircle } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ConsoleOutputItem {
   type: 'log' | 'error' | 'warn' | 'info';
@@ -67,7 +66,7 @@ export function ConsoleOutput({
       </div>
 
       {/* Content */}
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-y-auto">
         <div className="p-4 font-mono text-xs">
           {!hasContent && (
             <div className="flex flex-col items-center justify-center py-8 text-slate-500">
@@ -111,7 +110,7 @@ export function ConsoleOutput({
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }

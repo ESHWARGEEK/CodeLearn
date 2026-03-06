@@ -268,6 +268,11 @@ export function generateUserFriendlyError(errors: string[]): string {
   }
 
   const firstError = errors[0];
+  
+  if (!firstError) {
+    return 'An unknown error occurred during execution';
+  }
+  
   const { category } = categorizeError(firstError);
 
   switch (category) {
@@ -329,7 +334,14 @@ export function mergeExecutionResults(results: ExecutionResult[]): ExecutionResu
   }
 
   if (results.length === 1) {
-    return results[0];
+    const result = results[0];
+    if (!result) {
+      return {
+        success: false,
+        errors: ['Invalid execution result'],
+      };
+    }
+    return result;
   }
 
   const allSuccessful = results.every((r) => r.success);

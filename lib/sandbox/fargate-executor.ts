@@ -96,14 +96,15 @@ export async function executeFargate(
     }
 
     const task = response.tasks[0];
-    const taskArn = task.taskArn;
-
-    if (!taskArn) {
+    
+    if (!task || !task.taskArn) {
       return {
         success: false,
         errors: ['Task ARN not returned'],
       };
     }
+
+    const taskArn = task.taskArn;
 
     // Return task ARN for status polling
     return {
@@ -148,6 +149,14 @@ export async function getTaskStatus(
     }
 
     const task = response.tasks[0];
+    
+    if (!task) {
+      return {
+        success: false,
+        errors: ['Task data not available'],
+      };
+    }
+    
     const lastStatus = task.lastStatus as 'PENDING' | 'RUNNING' | 'STOPPED';
 
     // If task is stopped, check exit code
