@@ -4,6 +4,7 @@ import { DatabaseStack } from '../lib/database-stack';
 import { StorageStack } from '../lib/storage-stack';
 import { AuthStack } from '../lib/auth-stack';
 import { QueueStack } from '../lib/queue-stack';
+import { SandboxStack } from '../lib/sandbox-stack';
 
 const app = new cdk.App();
 
@@ -53,6 +54,18 @@ const queueStack = new QueueStack(app, `CodeLearn-Queue-${env}`, {
   env: { account, region },
   stackName: `codelearn-queue-${env}`,
   description: 'SQS queues for async job processing',
+  tags: {
+    Environment: env,
+    Project: 'CodeLearn',
+    ManagedBy: 'CDK',
+  },
+});
+
+// Sandbox Stack - Lambda function for code execution
+const sandboxStack = new SandboxStack(app, `CodeLearn-Sandbox-${env}`, {
+  env: { account, region },
+  stackName: `codelearn-sandbox-${env}`,
+  description: 'Lambda function for isolated code execution',
   tags: {
     Environment: env,
     Project: 'CodeLearn',

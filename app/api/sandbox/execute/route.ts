@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { executeLambda, isLambdaAvailable } from '@/lib/sandbox/lambda-executor';
 
 interface ExecuteRequest {
   code: string;
@@ -10,10 +11,43 @@ interface ExecuteRequest {
 export async function POST(request: NextRequest) {
   try {
     const body: ExecuteRequest = await request.json();
-    const { code, language, timeout = 15000 } = body;
+    const { code, language, timeout = 15000, environment = 'lambda' } = body;
 
-    // TODO: Execute code in Lambda or Fargate sandbox
-    // For now, return mock execution result
+    // Validate language
+    if (language !== 'javascript' && language !== 'typescript') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'INVALID_LANGUAGE',
+            message: 'Only JavaScript and TypeScript are supported',
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    // Execute in Lambda for quick execution
+    if (environment === 'lambda' && isLambdaAvailable()) {
+      const result = await executeLambda({
+        code,
+        language: language as 'javascript' | 'typescript',
+        timeout,
+      });
+
+      return NextResponse.json({
+        success: result.success,
+        data: {
+          output: result.output || '',
+          errors: result.errors || [],
+          executionTime: result.executionTime || 0,
+          previewUrl: result.previewUrl || null,
+        },
+      });
+    }
+
+    // Fallback to mock execution if Lambda is not available
+    console.warn('Lambda executor not available, using mock execution');
     
     // Simulate execution delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -39,7 +73,7 @@ export async function POST(request: NextRequest) {
         output,
         errors,
         executionTime: 1000,
-        previewUrl: null, // Would be set for web apps
+        previewUrl: null,
       },
     });
   } catch (error) {
