@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeLambda, isLambdaAvailable } from '@/lib/sandbox/lambda-executor';
+import { executeFargate, isFargateAvailable } from '@/lib/sandbox/fargate-executor';
 
 interface ExecuteRequest {
   code: string;
@@ -46,8 +47,28 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Fallback to mock execution if Lambda is not available
-    console.warn('Lambda executor not available, using mock execution');
+    // Execute in Fargate for complex/long-running code
+    if (environment === 'fargate' && isFargateAvailable()) {
+      const result = await executeFargate({
+        code,
+        language: language as 'javascript' | 'typescript',
+        timeout,
+      });
+
+      return NextResponse.json({
+        success: result.success,
+        data: {
+          taskArn: result.taskArn,
+          status: result.status,
+          output: result.output || '',
+          errors: result.errors || [],
+          executionTime: result.executionTime || 0,
+        },
+      });
+    }
+
+    // Fallback to mock execution if neither Lambda nor Fargate is available
+    console.warn('Neither Lambda nor Fargate executor available, using mock execution');
     
     // Simulate execution delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
