@@ -54,11 +54,22 @@ export default function AIMentorChat({ context, className }: AIMentorChatProps) 
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const questionText = input;
     setInput('');
     setIsLoading(true);
 
+    // Create a placeholder AI message for streaming
+    const aiMessageId = (Date.now() + 1).toString();
+    const aiMessage: Message = {
+      id: aiMessageId,
+      role: 'ai',
+      content: '',
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, aiMessage]);
+
     try {
-      // Build conversation history from messages (exclude the welcome message)
+      // Build conversation history from messages (exclude the welcome message and current messages)
       const conversationHistory = messages
         .slice(1) // Skip welcome message
         .map((msg) => ({
@@ -66,44 +77,100 @@ export default function AIMentorChat({ context, className }: AIMentorChatProps) 
           content: msg.content,
         }));
 
-      // Call the AI Mentor API
+      // Call the AI Mentor API with streaming enabled
       const response = await fetch('/api/ai/mentor/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          question: input,
+          question: questionText,
           responseType: 'chat',
           taskContext: context?.currentTask,
           codeContext: context?.code,
           conversationHistory,
+          stream: true,
         }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error?.message || 'Failed to get response');
+      if (!response.ok) {
+        throw new Error('Failed to get response');
       }
 
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'ai',
-        content: data.data.response,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiMessage]);
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      let accumulatedContent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        // Decode the chunk
+        const chunk = decoder.decode(value, { stream: true });
+        
+        // Parse Server-Sent Events format
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.error) {
+                throw new Error(data.error);
+              }
+              
+              if (data.done) {
+                // Streaming complete
+                break;
+              }
+              
+              if (data.chunk) {
+                accumulatedContent += data.chunk;
+                
+                // Update the AI message with accumulated content
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === aiMessageId
+                      ? { ...msg, content: accumulatedContent }
+                      : msg
+                  )
+                );
+              }
+            } catch (parseError) {
+              console.error('Error parsing SSE data:', parseError);
+            }
+          }
+        }
+      }
+
+      // If no content was received, show error
+      if (!accumulatedContent) {
+        throw new Error('No response received');
+      }
     } catch (error) {
       console.error('AI Mentor error:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'ai',
-        content:
-          "I'm sorry, I encountered an error. Please try again or check the documentation for help.",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      
+      // Update the AI message with error content
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === aiMessageId
+            ? {
+                ...msg,
+                content:
+                  "I'm sorry, I encountered an error. Please try again or check the documentation for help.",
+              }
+            : msg
+        )
+      );
     } finally {
       setIsLoading(false);
       inputRef.current?.focus();

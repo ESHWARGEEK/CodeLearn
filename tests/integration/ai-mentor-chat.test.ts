@@ -288,4 +288,204 @@ function LoginForm() {
       expect(data.error).toHaveProperty('requestId');
     });
   });
+
+  describe('Streaming Response', () => {
+    it('should stream response when stream=true', async () => {
+      const response = await fetch(`${baseUrl}/api/ai/mentor/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: 'What is React?',
+          responseType: 'chat',
+          stream: true,
+        }),
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('Content-Type')).toBe('text/event-stream');
+      expect(response.headers.get('Cache-Control')).toBe('no-cache');
+      expect(response.headers.get('Connection')).toBe('keep-alive');
+
+      // Read the stream
+      const reader = response.body?.getReader();
+      expect(reader).toBeDefined();
+
+      if (reader) {
+        const decoder = new TextDecoder();
+        let fullContent = '';
+        let receivedChunks = 0;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = JSON.parse(line.slice(6));
+              if (data.chunk) {
+                fullContent += data.chunk;
+                receivedChunks++;
+              }
+              if (data.done) {
+                expect(data.done).toBe(true);
+              }
+            }
+          }
+        }
+
+        // Verify we received content
+        expect(fullContent.length).toBeGreaterThan(0);
+        expect(receivedChunks).toBeGreaterThan(0);
+      }
+    });
+
+    it('should stream response with conversation history', async () => {
+      const response = await fetch(`${baseUrl}/api/ai/mentor/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: 'Tell me more',
+          responseType: 'chat',
+          stream: true,
+          conversationHistory: [
+            { role: 'user', content: 'What is React?' },
+            { role: 'assistant', content: 'React is a JavaScript library.' },
+          ],
+        }),
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('Content-Type')).toBe('text/event-stream');
+
+      // Verify stream works
+      const reader = response.body?.getReader();
+      if (reader) {
+        const { done, value } = await reader.read();
+        expect(value).toBeDefined();
+      }
+    });
+
+    it('should stream hint responses', async () => {
+      const response = await fetch(`${baseUrl}/api/ai/mentor/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: 'I need help',
+          responseType: 'hint',
+          taskContext: 'Create a counter component',
+          stream: true,
+        }),
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('Content-Type')).toBe('text/event-stream');
+
+      const reader = response.body?.getReader();
+      if (reader) {
+        const decoder = new TextDecoder();
+        let fullContent = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = JSON.parse(line.slice(6));
+              if (data.chunk) {
+                fullContent += data.chunk;
+              }
+            }
+          }
+        }
+
+        expect(fullContent.length).toBeGreaterThan(0);
+      }
+    });
+
+    it('should stream explanation responses', async () => {
+      const response = await fetch(`${baseUrl}/api/ai/mentor/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: 'Explain this',
+          responseType: 'explanation',
+          codeContext: 'const [count, setCount] = useState(0);',
+          stream: true,
+        }),
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('Content-Type')).toBe('text/event-stream');
+
+      const reader = response.body?.getReader();
+      if (reader) {
+        const decoder = new TextDecoder();
+        let receivedDone = false;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = JSON.parse(line.slice(6));
+              if (data.done) {
+                receivedDone = true;
+              }
+            }
+          }
+        }
+
+        expect(receivedDone).toBe(true);
+      }
+    });
+
+    it('should complete streaming within 3 seconds', async () => {
+      const startTime = Date.now();
+
+      const response = await fetch(`${baseUrl}/api/ai/mentor/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: 'What is a React component?',
+          stream: true,
+        }),
+      });
+
+      const reader = response.body?.getReader();
+      if (reader) {
+        const decoder = new TextDecoder();
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = JSON.parse(line.slice(6));
+              if (data.done) {
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                expect(duration).toBeLessThan(3000);
+                return;
+              }
+            }
+          }
+        }
+      }
+    });
+  });
 });

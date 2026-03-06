@@ -7,7 +7,7 @@ describe('AIMentorChat', () => {
   it('renders with initial AI greeting message', () => {
     render(<AIMentorChat />);
 
-    expect(screen.getByText(/AI Mentor/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /AI Mentor/i })).toBeInTheDocument();
     expect(
       screen.getByText(/I'm here to help you learn and solve problems/i)
     ).toBeInTheDocument();
@@ -132,6 +132,35 @@ describe('AIMentorChat', () => {
   });
 
   it('displays AI response after user message', async () => {
+    // Mock fetch for streaming response
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        body: {
+          getReader: () => ({
+            read: vi
+              .fn()
+              .mockResolvedValueOnce({
+                done: false,
+                value: new TextEncoder().encode('data: {"chunk":"Hello "}\n\n'),
+              })
+              .mockResolvedValueOnce({
+                done: false,
+                value: new TextEncoder().encode('data: {"chunk":"there!"}\n\n'),
+              })
+              .mockResolvedValueOnce({
+                done: false,
+                value: new TextEncoder().encode('data: {"done":true}\n\n'),
+              })
+              .mockResolvedValueOnce({
+                done: true,
+                value: undefined,
+              }),
+          }),
+        },
+      } as any)
+    );
+
     render(<AIMentorChat />);
 
     const input = screen.getByPlaceholderText('Ask me anything...');
@@ -141,12 +170,10 @@ describe('AIMentorChat', () => {
     fireEvent.change(input, { target: { value: 'Help me' } });
     fireEvent.click(sendButton);
 
-    // Wait for AI response
+    // Wait for AI response to stream in
     await waitFor(
       () => {
-        expect(
-          screen.getByText(/Great question! Let me help you with that/i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/Hello there!/i)).toBeInTheDocument();
       },
       { timeout: 2000 }
     );
@@ -162,7 +189,7 @@ describe('AIMentorChat', () => {
     render(<AIMentorChat context={context} />);
 
     // Component should render without errors
-    expect(screen.getByText(/AI Mentor/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /AI Mentor/i })).toBeInTheDocument();
   });
 
   it('applies custom className', () => {
@@ -222,5 +249,189 @@ describe('AIMentorChat', () => {
     // Should not add a new message (only initial AI message should exist)
     const messages = screen.getAllByText(/./);
     expect(messages.length).toBeLessThan(10); // Arbitrary check
+  });
+
+  it('handles streaming response correctly', async () => {
+    // Mock fetch for streaming response
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        body: {
+          getReader: () => ({
+            read: vi
+              .fn()
+              .mockResolvedValueOnce({
+                done: false,
+                value: new TextEncoder().encode('data: {"chunk":"Streaming "}\n\n'),
+              })
+              .mockResolvedValueOnce({
+                done: false,
+                value: new TextEncoder().encode('data: {"chunk":"works "}\n\n'),
+              })
+              .mockResolvedValueOnce({
+                done: false,
+                value: new TextEncoder().encode('data: {"chunk":"great!"}\n\n'),
+              })
+              .mockResolvedValueOnce({
+                done: false,
+                value: new TextEncoder().encode('data: {"done":true}\n\n'),
+              })
+              .mockResolvedValueOnce({
+                done: true,
+                value: undefined,
+              }),
+          }),
+        },
+      } as any)
+    );
+
+    render(<AIMentorChat />);
+
+    const input = screen.getByPlaceholderText('Ask me anything...');
+    const sendButton = screen.getByRole('button', { name: '' });
+
+    fireEvent.change(input, { target: { value: 'Test streaming' } });
+    fireEvent.click(sendButton);
+
+    // Wait for complete streamed message
+    await waitFor(
+      () => {
+        expect(screen.getByText('Streaming works great!')).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
+  });
+
+  it('handles streaming errors gracefully', async () => {
+    // Mock fetch to return error in stream
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        body: {
+          getReader: () => ({
+            read: vi
+              .fn()
+              .mockResolvedValueOnce({
+                done: false,
+                value: new TextEncoder().encode('data: {"error":"Streaming failed"}\n\n'),
+              })
+              .mockResolvedValueOnce({
+                done: true,
+                value: undefined,
+              }),
+          }),
+        },
+      } as any)
+    );
+
+    render(<AIMentorChat />);
+
+    const input = screen.getByPlaceholderText('Ask me anything...');
+    const sendButton = screen.getByRole('button', { name: '' });
+
+    fireEvent.change(input, { target: { value: 'Test error' } });
+    fireEvent.click(sendButton);
+
+    // Wait for error message
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText(/I'm sorry, I encountered an error/i)
+        ).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
+  });
+
+  it('shows typing indicator during streaming', async () => {
+    // Mock fetch with delayed streaming
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        body: {
+          getReader: () => ({
+            read: vi
+              .fn()
+              .mockImplementation(() =>
+                new Promise((resolve) =>
+                  setTimeout(
+                    () =>
+                      resolve({
+                        done: false,
+                        value: new TextEncoder().encode('data: {"chunk":"Test"}\n\n'),
+                      }),
+                    100
+                  )
+                )
+              )
+              .mockResolvedValueOnce({
+                done: true,
+                value: undefined,
+              }),
+          }),
+        },
+      } as any)
+    );
+
+    render(<AIMentorChat />);
+
+    const input = screen.getByPlaceholderText('Ask me anything...');
+    const sendButton = screen.getByRole('button', { name: '' });
+
+    fireEvent.change(input, { target: { value: 'Test' } });
+    fireEvent.click(sendButton);
+
+    // Check for typing indicator
+    await waitFor(() => {
+      const typingIndicator = screen.getByText('Test').parentElement?.parentElement;
+      expect(typingIndicator).toBeInTheDocument();
+    });
+  });
+
+  it('updates message content incrementally during streaming', async () => {
+    let readCallCount = 0;
+    const chunks = [
+      'data: {"chunk":"First "}\n\n',
+      'data: {"chunk":"second "}\n\n',
+      'data: {"chunk":"third"}\n\n',
+      'data: {"done":true}\n\n',
+    ];
+
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        body: {
+          getReader: () => ({
+            read: vi.fn().mockImplementation(() => {
+              if (readCallCount < chunks.length) {
+                const chunk = chunks[readCallCount];
+                readCallCount++;
+                return Promise.resolve({
+                  done: false,
+                  value: new TextEncoder().encode(chunk),
+                });
+              }
+              return Promise.resolve({ done: true, value: undefined });
+            }),
+          }),
+        },
+      } as any)
+    );
+
+    render(<AIMentorChat />);
+
+    const input = screen.getByPlaceholderText('Ask me anything...');
+    const sendButton = screen.getByRole('button', { name: '' });
+
+    fireEvent.change(input, { target: { value: 'Test incremental' } });
+    fireEvent.click(sendButton);
+
+    // Wait for final message
+    await waitFor(
+      () => {
+        expect(screen.getByText('First second third')).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
   });
 });
