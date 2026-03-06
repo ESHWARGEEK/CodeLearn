@@ -4,6 +4,8 @@ import { DatabaseStack } from '../lib/database-stack';
 import { StorageStack } from '../lib/storage-stack';
 import { AuthStack } from '../lib/auth-stack';
 import { QueueStack } from '../lib/queue-stack';
+import { SandboxStack } from '../lib/sandbox-stack';
+import { FargateSandboxStack } from '../lib/fargate-sandbox-stack';
 
 const app = new cdk.App();
 
@@ -59,5 +61,33 @@ const queueStack = new QueueStack(app, `CodeLearn-Queue-${env}`, {
     ManagedBy: 'CDK',
   },
 });
+
+// Sandbox Stack - Lambda function for code execution
+const sandboxStack = new SandboxStack(app, `CodeLearn-Sandbox-${env}`, {
+  env: { account, region },
+  stackName: `codelearn-sandbox-${env}`,
+  description: 'Lambda function for isolated code execution',
+  tags: {
+    Environment: env,
+    Project: 'CodeLearn',
+    ManagedBy: 'CDK',
+  },
+});
+
+// Fargate Sandbox Stack - ECS Fargate for complex execution
+const fargateSandboxStack = new FargateSandboxStack(
+  app,
+  `CodeLearn-FargateSandbox-${env}`,
+  {
+    env: { account, region },
+    stackName: `codelearn-fargate-sandbox-${env}`,
+    description: 'ECS Fargate tasks for complex code execution',
+    tags: {
+      Environment: env,
+      Project: 'CodeLearn',
+      ManagedBy: 'CDK',
+    },
+  }
+);
 
 app.synth();
