@@ -80,3 +80,26 @@ export interface TeacherOutput {
   estimatedHours: number;
   generatedAt: number;
 }
+
+// Mentor Agent Types
+
+export type MentorResponseType = 'hint' | 'explanation' | 'chat';
+
+export interface ConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface MentorInput {
+  responseType: MentorResponseType;
+  question: string;
+  taskContext?: string;
+  codeContext?: string;
+  conversationHistory: ConversationMessage[];
+}
+
+export interface MentorOutput {
+  response: string;
+  responseType: MentorResponseType;
+  timestamp: number;
+}
