@@ -60,6 +60,7 @@
     "@vitest/coverage-v8": "^1.6.1",
     "@vitest/ui": "^1.6.1",
     "aws-cdk-lib": "^2.240.0",
+    "aws-sdk-client-mock": "^4.1.0",
     "constructs": "^10.5.1",
     "eslint": "^8",
     "eslint-config-next": "14.2.0",

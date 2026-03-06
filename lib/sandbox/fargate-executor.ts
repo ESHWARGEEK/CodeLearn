@@ -10,6 +10,12 @@ import {
   DescribeTasksCommand,
   StopTaskCommand,
 } from '@aws-sdk/client-ecs';
+import {
+  FARGATE_LIMITS,
+  enforceTimeout,
+  enforceOutputSize,
+  validateResourceRequest,
+} from './resource-limits';
 
 // Allow dependency injection for testing
 let ecsClientInstance: ECSClient | null = null;
@@ -37,6 +43,7 @@ export interface ExecuteRequest {
   code: string;
   language: 'javascript' | 'typescript';
   timeout?: number;
+  memory?: number;
 }
 
 export interface ExecuteResponse {
@@ -46,33 +53,53 @@ export interface ExecuteResponse {
   errors?: string[];
   executionTime?: number;
   status?: 'PENDING' | 'RUNNING' | 'STOPPED';
+  resourceLimits?: {
+    memory: number;
+    cpu: number;
+    timeout: number;
+    enforced: boolean;
+  };
 }
 
-const MAX_FARGATE_TIMEOUT = 1800000; // 30 minutes
-
 /**
- * Execute code in Fargate task with timeout enforcement
+ * Execute code in Fargate task with resource limit enforcement
  */
 export async function executeFargate(
   request: ExecuteRequest
 ): Promise<ExecuteResponse> {
   try {
+    // Validate resource request against limits
+    const validation = validateResourceRequest(
+      {
+        timeout: request.timeout,
+        memory: request.memory,
+      },
+      FARGATE_LIMITS
+    );
+
+    if (!validation.valid) {
+      return {
+        success: false,
+        errors: validation.errors,
+      };
+    }
+
     const ecsClient = getECSClient();
 
-    // Enforce maximum timeout of 30 minutes for Fargate
-    const effectiveTimeout = Math.min(
-      request.timeout || MAX_FARGATE_TIMEOUT,
-      MAX_FARGATE_TIMEOUT
-    );
+    // Enforce resource limits
+    const effectiveTimeout = enforceTimeout(request.timeout, FARGATE_LIMITS);
+    const effectiveMemory = FARGATE_LIMITS.memory;
+    const effectiveCpu = FARGATE_LIMITS.cpu || 1024;
 
     // Prepare environment variables for the task
     const environment = [
       { name: 'CODE', value: Buffer.from(request.code).toString('base64') },
       { name: 'LANGUAGE', value: request.language },
       { name: 'TIMEOUT', value: String(effectiveTimeout) },
+      { name: 'MEMORY_LIMIT', value: String(effectiveMemory) },
     ];
 
-    // Run the Fargate task
+    // Run the Fargate task with resource limits
     const command = new RunTaskCommand({
       cluster: CLUSTER_ARN,
       taskDefinition: TASK_DEFINITION_ARN,
@@ -89,6 +116,9 @@ export async function executeFargate(
           {
             name: 'sandbox-executor',
             environment,
+            // Enforce CPU and memory limits
+            cpu: effectiveCpu,
+            memory: effectiveMemory,
           },
         ],
       },
@@ -119,11 +149,17 @@ export async function executeFargate(
       console.error('Timeout monitoring error:', error);
     });
 
-    // Return task ARN for status polling
+    // Return task ARN for status polling with resource limit info
     return {
       success: true,
       taskArn,
       status: 'PENDING',
+      resourceLimits: {
+        memory: effectiveMemory,
+        cpu: effectiveCpu,
+        timeout: effectiveTimeout,
+        enforced: true,
+      },
     };
   } catch (error) {
     console.error('Fargate execution failed:', error);
@@ -181,7 +217,7 @@ async function monitorTaskTimeout(
 }
 
 /**
- * Get status of a running Fargate task
+ * Get status of a running Fargate task with output size enforcement
  */
 export async function getTaskStatus(
   taskArn: string
@@ -220,26 +256,69 @@ export async function getTaskStatus(
       const exitCode = container?.exitCode;
       const stopReason = task.stoppedReason || '';
 
+      // Trigger automatic cleanup for stopped tasks
+      scheduleTaskCleanup(taskArn).catch(error => {
+        console.error(`Failed to schedule cleanup for task ${taskArn}:`, error);
+      });
+
       // Check if task was stopped due to timeout
       if (stopReason.includes('timeout') || stopReason.includes('User requested cancellation')) {
         return {
           success: false,
           status: 'STOPPED',
           errors: ['Execution timeout: Task exceeded maximum execution time'],
+          resourceLimits: {
+            memory: FARGATE_LIMITS.memory,
+            cpu: FARGATE_LIMITS.cpu || 1024,
+            timeout: FARGATE_LIMITS.timeout,
+            enforced: true,
+          },
+        };
+      }
+
+      // Check for out of memory errors
+      if (stopReason.includes('OutOfMemory') || stopReason.includes('OOM')) {
+        return {
+          success: false,
+          status: 'STOPPED',
+          errors: [`Resource limit exceeded: Task ran out of memory (limit: ${FARGATE_LIMITS.memory}MB)`],
+          resourceLimits: {
+            memory: FARGATE_LIMITS.memory,
+            cpu: FARGATE_LIMITS.cpu || 1024,
+            timeout: FARGATE_LIMITS.timeout,
+            enforced: true,
+          },
         };
       }
 
       if (exitCode === 0) {
+        // Task completed successfully - enforce output size limits
+        const output = 'Task completed successfully';
+        const { output: enforcedOutput, truncated } = enforceOutputSize(output, FARGATE_LIMITS);
+        
         return {
           success: true,
           status: 'STOPPED',
-          output: 'Task completed successfully',
+          output: enforcedOutput,
+          errors: truncated ? ['Output was truncated due to size limits'] : undefined,
+          resourceLimits: {
+            memory: FARGATE_LIMITS.memory,
+            cpu: FARGATE_LIMITS.cpu || 1024,
+            timeout: FARGATE_LIMITS.timeout,
+            enforced: true,
+          },
         };
       } else {
         return {
           success: false,
           status: 'STOPPED',
           errors: [`Task failed with exit code: ${exitCode}`],
+          resourceLimits: {
+            memory: FARGATE_LIMITS.memory,
+            cpu: FARGATE_LIMITS.cpu || 1024,
+            timeout: FARGATE_LIMITS.timeout,
+            enforced: true,
+          },
         };
       }
     }
@@ -248,6 +327,12 @@ export async function getTaskStatus(
       success: true,
       taskArn,
       status: lastStatus,
+      resourceLimits: {
+        memory: FARGATE_LIMITS.memory,
+        cpu: FARGATE_LIMITS.cpu || 1024,
+        timeout: FARGATE_LIMITS.timeout,
+        enforced: true,
+      },
     };
   } catch (error) {
     console.error('Failed to get task status:', error);
@@ -260,6 +345,24 @@ export async function getTaskStatus(
       ],
     };
   }
+}
+
+/**
+ * Schedule cleanup for a stopped task (delayed to allow result retrieval)
+ */
+async function scheduleTaskCleanup(taskArn: string): Promise<void> {
+  // Import cleanup function dynamically to avoid circular dependencies
+  const { cleanupTaskResources } = await import('./cleanup');
+  
+  // Delay cleanup by 5 minutes to allow result retrieval
+  setTimeout(async () => {
+    try {
+      await cleanupTaskResources(taskArn);
+      console.log(`Automatic cleanup completed for task: ${taskArn}`);
+    } catch (error) {
+      console.error(`Automatic cleanup failed for task ${taskArn}:`, error);
+    }
+  }, 5 * 60 * 1000); // 5 minutes
 }
 
 /**

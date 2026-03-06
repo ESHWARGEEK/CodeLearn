@@ -39,16 +39,18 @@ describe('Timeout Enforcement', () => {
         ),
       });
 
-      // Request 30 seconds but should be capped at 15 seconds
-      await executeLambda({
+      // Request exceeding 15 seconds should be rejected
+      const result = await executeLambda({
         code: 'console.log("test");',
         language: 'javascript',
         timeout: 30000,
       });
 
-      expect(mockSend).toHaveBeenCalled();
-      const payload = JSON.parse(mockSend.mock.calls[0][0].input.Payload);
-      expect(payload.timeout).toBeLessThanOrEqual(15000);
+      // Should be rejected, not capped
+      expect(result.success).toBe(false);
+      expect(result.errors).toBeDefined();
+      expect(result.errors?.[0]).toContain('Requested timeout 30000ms exceeds maximum 15000ms');
+      expect(mockSend).not.toHaveBeenCalled();
     });
 
     it('should handle timeout errors from Lambda', async () => {
@@ -156,18 +158,18 @@ describe('Timeout Enforcement', () => {
         ],
       });
 
-      // Request 2 hours but should be capped at 30 minutes
-      await executeFargate({
+      // Request exceeding 30 minutes should be rejected
+      const result = await executeFargate({
         code: 'console.log("test");',
         language: 'javascript',
         timeout: 7200000, // 2 hours
       });
 
-      expect(mockSend).toHaveBeenCalled();
-      const command = mockSend.mock.calls[0][0];
-      const environment = command.input.overrides.containerOverrides[0].environment;
-      const timeoutEnv = environment.find((e: any) => e.name === 'TIMEOUT');
-      expect(parseInt(timeoutEnv.value)).toBeLessThanOrEqual(1800000); // 30 minutes
+      // Should be rejected, not capped
+      expect(result.success).toBe(false);
+      expect(result.errors).toBeDefined();
+      expect(result.errors?.[0]).toContain('Requested timeout 7200000ms exceeds maximum 1800000ms');
+      expect(mockSend).not.toHaveBeenCalled();
     });
 
     it('should use default timeout of 30 minutes when not specified', async () => {

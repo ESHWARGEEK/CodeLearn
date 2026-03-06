@@ -107,8 +107,8 @@ This document tracks the implementation of the CodeLearn AI Learning & Developer
 - [x] 7.3 Implement POST /api/sandbox/execute
 - [x] 7.4 Add execution result handling
 - [x] 7.5 Implement timeout enforcement
-- [ ] 7.6 Add resource limit enforcement
-- [ ] 7.7 Create automatic cleanup logic
+- [x] 7.6 Add resource limit enforcement
+- [x] 7.7 Create automatic cleanup logic
 
 ---
 
