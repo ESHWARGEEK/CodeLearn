@@ -173,29 +173,6 @@ describe('POST /api/sandbox/deploy', () => {
     });
   });
 
-  it('should return 501 for Netlify platform', async () => {
-    const request = new NextRequest('http://localhost:3000/api/sandbox/deploy', {
-      method: 'POST',
-      body: JSON.stringify({
-        projectId: 'proj-123',
-        userId: 'user-456',
-        platform: 'netlify',
-      }),
-    });
-
-    const response = await POST(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(501);
-    expect(data).toEqual({
-      success: false,
-      error: {
-        code: 'NETLIFY_NOT_IMPLEMENTED',
-        message: 'Netlify deployment is not yet implemented',
-      },
-    });
-  });
-
   it('should deploy to Netlify successfully', async () => {
     const mockResult = {
       deploymentId: 'deploy-123',
