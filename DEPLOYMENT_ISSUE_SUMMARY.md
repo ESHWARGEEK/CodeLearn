@@ -25,15 +25,16 @@ Module not found: Can't resolve '@/components/shared/Navbar'
 ## Resolution Required
 
 ### MANUAL ACTION NEEDED
-You must clear the Vercel build cache through the dashboard:
+You must redeploy without using the corrupted cache:
 
+**Quick Fix:**
 1. Visit https://vercel.com/dashboard
-2. Select CodeLearn project
-3. Go to Settings → Build & Development Settings
-4. Click "Clear Build Cache"
-5. Redeploy after cache is cleared
+2. Select CodeLearn project → Deployments tab
+3. Find latest deployment → Click three dots (⋯) → Redeploy
+4. **UNCHECK "Use existing Build Cache"**
+5. Click Redeploy
 
-**Detailed instructions**: See `VERCEL_CACHE_FIX_INSTRUCTIONS.md`
+**Detailed instructions with alternatives**: See `VERCEL_CACHE_FIX_INSTRUCTIONS.md`
 
 ## Changes Pushed to `feature/task-9-deployment`
 
@@ -78,19 +79,20 @@ The issue is **not in the code** but in Vercel's infrastructure:
 
 ## Alternative Solutions
 
-If cache clearing doesn't work:
+### Option 1: Redeploy Without Cache (Recommended)
+In Vercel dashboard:
+- Deployments → Latest deployment → Three dots (⋯) → Redeploy
+- **UNCHECK "Use existing Build Cache"**
+- Click Redeploy
 
-### Option 1: Environment Variable
+### Option 2: Environment Variable
 Add to Vercel project settings:
 ```
 VERCEL_FORCE_NO_BUILD_CACHE=1
 ```
 
-### Option 2: Contact Vercel Support
-Provide cache ID: `BACj6jX4dhxUhtbYeZSVcd9LLeyw`
-
-### Option 3: New Project (Last Resort)
-Create fresh Vercel project with clean cache
+### Option 3: Delete and Reconnect Project (Last Resort)
+Delete project in Vercel settings and reconnect from GitHub
 
 ## Current Status
 
