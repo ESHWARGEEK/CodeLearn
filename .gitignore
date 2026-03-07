@@ -55,3 +55,6 @@ scripts/add-github-oauth.ps1
 # Environment backups
 .env.backup
 .env.cdk-outputs
+
+# Agent skills directory (contains its own git repo)
+.agent/
