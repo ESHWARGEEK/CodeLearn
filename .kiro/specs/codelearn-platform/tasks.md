@@ -6,7 +6,7 @@ This document tracks the implementation of the CodeLearn AI Learning & Developer
 ## Status Legend
 - [ ] Not started
 - [x] Complete
-- [~] In progress
+- [ ] In progress
 
 ---
 
@@ -120,7 +120,7 @@ This document tracks the implementation of the CodeLearn AI Learning & Developer
 - [x] 8.2 Implement Mentor Agent (Claude 3.5)
 - [x] 8.3 Create POST /api/ai/mentor/chat
 - [x] 8.4 Add streaming response support
-- [ ] 8.5 Implement conversation context
+- [x] 8.5 Implement conversation context
 - [ ] 8.6 Add quick action buttons
 
 ---
