@@ -59,11 +59,12 @@ describe('Deployment → Portfolio Integration', () => {
       name: 'Test App',
       technology: 'react',
       type: 'learning' as const,
-      status: 'active' as const,
+      status: 'completed' as const,
       progress: 100,
       codeS3Key: `${userId}/${projectId}/code.zip`,
       createdAt: Date.now(),
       updatedAt: Date.now(),
+      completedAt: Date.now(),
     };
 
     // Mock database operations
@@ -304,11 +305,12 @@ describe('Deployment → Portfolio Integration', () => {
       name: 'Failed App',
       technology: 'react',
       type: 'learning' as const,
-      status: 'active' as const,
+      status: 'completed' as const,
       progress: 100,
       codeS3Key: `${userId}/${projectId}/code.zip`,
       createdAt: Date.now(),
       updatedAt: Date.now(),
+      completedAt: Date.now(),
     };
 
     vi.mocked(dynamodb.getItem).mockResolvedValue(mockProject);
