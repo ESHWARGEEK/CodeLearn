@@ -121,7 +121,7 @@ This document tracks the implementation of the CodeLearn AI Learning & Developer
 - [x] 8.3 Create POST /api/ai/mentor/chat
 - [x] 8.4 Add streaming response support
 - [x] 8.5 Implement conversation context
-- [ ] 8.6 Add quick action buttons
+- [x] 8.6 Add quick action buttons
 
 ---
 

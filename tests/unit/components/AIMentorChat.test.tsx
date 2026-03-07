@@ -100,17 +100,214 @@ describe('AIMentorChat', () => {
     });
   });
 
-  it('quick action buttons populate input field', () => {
-    render(<AIMentorChat />);
+  it('quick action buttons send messages automatically with context', async () => {
+    // Mock fetch for streaming response
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        body: {
+          getReader: () => ({
+            read: vi
+              .fn()
+              .mockResolvedValueOnce({
+                done: false,
+                value: new TextEncoder().encode('data: {"chunk":"Here is the explanation"}\n\n'),
+              })
+              .mockResolvedValueOnce({
+                done: false,
+                value: new TextEncoder().encode('data: {"done":true}\n\n'),
+              })
+              .mockResolvedValueOnce({
+                done: true,
+                value: undefined,
+              }),
+          }),
+        },
+      } as any)
+    );
 
-    const input = screen.getByPlaceholderText('Ask me anything...');
+    const context = {
+      currentTask: 'Implement authentication',
+      code: 'const user = { name: "test" }',
+      projectId: 'proj-123',
+    };
+
+    render(<AIMentorChat context={context} />);
+
     const explainButton = screen.getByRole('button', { name: /Explain/i });
 
     // Click quick action
     fireEvent.click(explainButton);
 
-    // Check that input is populated
-    expect(input).toHaveValue('Can you explain this code to me?');
+    // Check that user message appears
+    await waitFor(() => {
+      expect(screen.getByText('Can you explain this code to me?')).toBeInTheDocument();
+    });
+
+    // Check that AI response appears
+    await waitFor(
+      () => {
+        expect(screen.getByText('Here is the explanation')).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
+
+    // Verify fetch was called with context
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/ai/mentor/chat',
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.stringContaining('Implement authentication'),
+      })
+    );
+  });
+
+  it('Find Bugs button sends debug request with code context', async () => {
+    // Mock fetch for streaming response
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        body: {
+          getReader: () => ({
+            read: vi
+              .fn()
+              .mockResolvedValueOnce({
+                done: false,
+                value: new TextEncoder().encode('data: {"chunk":"Found potential issues"}\n\n'),
+              })
+              .mockResolvedValueOnce({
+                done: false,
+                value: new TextEncoder().encode('data: {"done":true}\n\n'),
+              })
+              .mockResolvedValueOnce({
+                done: true,
+                value: undefined,
+              }),
+          }),
+        },
+      } as any)
+    );
+
+    const context = {
+      code: 'function test() { return x; }',
+    };
+
+    render(<AIMentorChat context={context} />);
+
+    const findBugsButton = screen.getByRole('button', { name: /Find Bugs/i });
+
+    // Click quick action
+    fireEvent.click(findBugsButton);
+
+    // Check that user message appears
+    await waitFor(() => {
+      expect(screen.getByText('Can you help me find bugs in my code?')).toBeInTheDocument();
+    });
+
+    // Check that AI response appears
+    await waitFor(
+      () => {
+        expect(screen.getByText('Found potential issues')).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
+
+    // Verify fetch was called with code context
+    const fetchCall = (global.fetch as any).mock.calls[0];
+    const requestBody = JSON.parse(fetchCall[1].body);
+    expect(requestBody.question).toContain('function test()');
+    expect(requestBody.responseType).toBe('debug');
+  });
+
+  it('Optimize button sends optimization request', async () => {
+    // Mock fetch for streaming response
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        body: {
+          getReader: () => ({
+            read: vi
+              .fn()
+              .mockResolvedValueOnce({
+                done: false,
+                value: new TextEncoder().encode('data: {"chunk":"Here are optimization suggestions"}\n\n'),
+              })
+              .mockResolvedValueOnce({
+                done: false,
+                value: new TextEncoder().encode('data: {"done":true}\n\n'),
+              })
+              .mockResolvedValueOnce({
+                done: true,
+                value: undefined,
+              }),
+          }),
+        },
+      } as any)
+    );
+
+    render(<AIMentorChat />);
+
+    const optimizeButton = screen.getByRole('button', { name: /Optimize/i });
+
+    // Click quick action
+    fireEvent.click(optimizeButton);
+
+    // Check that user message appears
+    await waitFor(() => {
+      expect(screen.getByText('How can I optimize this code?')).toBeInTheDocument();
+    });
+
+    // Check that AI response appears
+    await waitFor(
+      () => {
+        expect(screen.getByText('Here are optimization suggestions')).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
+
+    // Verify fetch was called with correct response type
+    const fetchCall = (global.fetch as any).mock.calls[0];
+    const requestBody = JSON.parse(fetchCall[1].body);
+    expect(requestBody.responseType).toBe('optimization');
+  });
+
+  it('quick action buttons are disabled while loading', async () => {
+    // Mock fetch with delayed response
+    global.fetch = vi.fn(() =>
+      new Promise((resolve) =>
+        setTimeout(
+          () =>
+            resolve({
+              ok: true,
+              body: {
+                getReader: () => ({
+                  read: vi.fn().mockResolvedValue({
+                    done: true,
+                    value: undefined,
+                  }),
+                }),
+              },
+            } as any),
+          100
+        )
+      )
+    );
+
+    render(<AIMentorChat />);
+
+    const explainButton = screen.getByRole('button', { name: /Explain/i });
+    const findBugsButton = screen.getByRole('button', { name: /Find Bugs/i });
+    const optimizeButton = screen.getByRole('button', { name: /Optimize/i });
+
+    // Click quick action
+    fireEvent.click(explainButton);
+
+    // Check that all quick action buttons are disabled
+    await waitFor(() => {
+      expect(explainButton).toBeDisabled();
+      expect(findBugsButton).toBeDisabled();
+      expect(optimizeButton).toBeDisabled();
+    });
   });
 
   it('disables input and buttons while loading', async () => {
