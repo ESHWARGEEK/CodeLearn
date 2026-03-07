@@ -82,7 +82,7 @@ export async function getProject(projectId: string): Promise<Project | null> {
     return null;
   }
 
-  return items[0] as Project;
+  return items[0]! as Project;
 }
 
 /**

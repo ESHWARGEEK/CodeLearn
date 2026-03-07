@@ -20,3 +20,20 @@ export async function getCurrentUser(request: NextRequest) {
 export function createAuthResponse(data: any) {
   return NextResponse.json(data);
 }
+
+export async function exchangeOAuthCode(code: string, provider: 'github' | 'google') {
+  return {
+    accessToken: 'stub-token',
+    refreshToken: 'stub-refresh',
+    expiresIn: 3600
+  };
+}
+
+export async function getUserFromToken(token: string) {
+  return {
+    userId: 'stub-user-id',
+    email: 'stub@example.com',
+    name: 'Stub User',
+    onboardingComplete: false
+  };
+}
