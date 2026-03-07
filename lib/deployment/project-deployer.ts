@@ -7,7 +7,8 @@
 
 import { getProjectByUser, updateProjectDeployment } from '../db/projects';
 import { getObject } from '../storage/s3';
-import { createDeployment, getDeploymentStatus, VercelDeployment } from './vercel-client';
+import { createDeployment as createVercelDeployment, getDeploymentStatus as getVercelDeploymentStatus, VercelDeployment } from './vercel-client';
+import { createDeployment as createNetlifyDeployment, getDeploymentStatus as getNetlifyDeploymentStatus, NetlifyDeployment } from './netlify-client';
 import JSZip from 'jszip';
 
 export interface DeploymentRequest {
@@ -45,22 +46,31 @@ export async function deployProject(
   const files = await extractFilesFromZip(codeBuffer);
 
   // Deploy based on platform
-  let deployment: VercelDeployment;
+  let deploymentId: string;
+  let deploymentUrl: string;
+  let status: string;
   
   if (request.platform === 'vercel') {
-    deployment = await deployToVercel(project.name, files, project.technology);
+    const deployment = await deployToVercel(project.name, files, project.technology);
+    deploymentId = deployment.id;
+    deploymentUrl = `https://${deployment.url}`;
+    status = mapVercelStatus(deployment.status);
+  } else if (request.platform === 'netlify') {
+    const deployment = await deployToNetlify(project.name, files, project.technology);
+    deploymentId = deployment.id;
+    deploymentUrl = deployment.url;
+    status = mapNetlifyStatus(deployment.status);
   } else {
-    throw new Error(`Platform ${request.platform} not yet implemented`);
+    throw new Error(`Platform ${request.platform} not supported`);
   }
 
   // Update project with deployment URL
-  const deploymentUrl = `https://${deployment.url}`;
   await updateProjectDeployment(request.projectId, request.userId, deploymentUrl);
 
   return {
-    deploymentId: deployment.id,
+    deploymentId,
     url: deploymentUrl,
-    status: mapDeploymentStatus(deployment.status),
+    status: status as 'building' | 'ready' | 'error',
     platform: request.platform,
   };
 }
@@ -73,16 +83,24 @@ export async function getDeploymentStatusById(
   platform: 'vercel' | 'netlify'
 ): Promise<DeploymentResult> {
   if (platform === 'vercel') {
-    const deployment = await getDeploymentStatus(deploymentId);
+    const deployment = await getVercelDeploymentStatus(deploymentId);
     return {
       deploymentId: deployment.id,
       url: `https://${deployment.url}`,
-      status: mapDeploymentStatus(deployment.status),
+      status: mapVercelStatus(deployment.status),
       platform: 'vercel',
+    };
+  } else if (platform === 'netlify') {
+    const deployment = await getNetlifyDeploymentStatus(deploymentId);
+    return {
+      deploymentId: deployment.id,
+      url: deployment.url,
+      status: mapNetlifyStatus(deployment.status),
+      platform: 'netlify',
     };
   }
 
-  throw new Error(`Platform ${platform} not yet implemented`);
+  throw new Error(`Platform ${platform} not supported`);
 }
 
 /**
@@ -97,12 +115,34 @@ async function deployToVercel(
   const framework = detectFramework(technology);
 
   // Create deployment
-  const deployment = await createDeployment({
+  const deployment = await createVercelDeployment({
     projectName: sanitizeProjectName(projectName),
     files,
     framework,
     buildCommand: getBuildCommand(framework),
     outputDirectory: getOutputDirectory(framework),
+  });
+
+  return deployment;
+}
+
+/**
+ * Deploy to Netlify
+ */
+async function deployToNetlify(
+  projectName: string,
+  files: Record<string, string>,
+  technology: string
+): Promise<NetlifyDeployment> {
+  // Detect framework from technology
+  const framework = detectFramework(technology);
+
+  // Create deployment
+  const deployment = await createNetlifyDeployment({
+    siteName: sanitizeProjectName(projectName),
+    files,
+    buildCommand: getBuildCommand(framework),
+    publishDirectory: getOutputDirectory(framework),
   });
 
   return deployment;
@@ -187,7 +227,7 @@ function sanitizeProjectName(name: string): string {
 /**
  * Map Vercel status to our status
  */
-function mapDeploymentStatus(
+function mapVercelStatus(
   status: string
 ): 'building' | 'ready' | 'error' {
   switch (status) {
@@ -198,6 +238,25 @@ function mapDeploymentStatus(
       return 'ready';
     case 'ERROR':
     case 'CANCELED':
+      return 'error';
+    default:
+      return 'building';
+  }
+}
+
+/**
+ * Map Netlify status to our status
+ */
+function mapNetlifyStatus(
+  status: string
+): 'building' | 'ready' | 'error' {
+  switch (status) {
+    case 'new':
+    case 'building':
+      return 'building';
+    case 'ready':
+      return 'ready';
+    case 'error':
       return 'error';
     default:
       return 'building';

@@ -7,14 +7,17 @@ import { POST, GET } from '@/app/api/sandbox/deploy/route';
 import { NextRequest } from 'next/server';
 import * as projectDeployer from '@/lib/deployment/project-deployer';
 import * as vercelClient from '@/lib/deployment/vercel-client';
+import * as netlifyClient from '@/lib/deployment/netlify-client';
 
 vi.mock('@/lib/deployment/project-deployer');
 vi.mock('@/lib/deployment/vercel-client');
+vi.mock('@/lib/deployment/netlify-client');
 
 describe('POST /api/sandbox/deploy', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(vercelClient.isVercelConfigured).mockReturnValue(true);
+    vi.mocked(netlifyClient.isNetlifyConfigured).mockReturnValue(true);
   });
 
   it('should deploy project successfully', async () => {
@@ -189,6 +192,70 @@ describe('POST /api/sandbox/deploy', () => {
       error: {
         code: 'NETLIFY_NOT_IMPLEMENTED',
         message: 'Netlify deployment is not yet implemented',
+      },
+    });
+  });
+
+  it('should deploy to Netlify successfully', async () => {
+    const mockResult = {
+      deploymentId: 'deploy-123',
+      url: 'https://my-app.netlify.app',
+      status: 'building' as const,
+      platform: 'netlify' as const,
+    };
+
+    vi.mocked(projectDeployer.deployProject).mockResolvedValue(mockResult);
+
+    const request = new NextRequest('http://localhost:3000/api/sandbox/deploy', {
+      method: 'POST',
+      body: JSON.stringify({
+        projectId: 'proj-123',
+        userId: 'user-456',
+        platform: 'netlify',
+      }),
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data).toEqual({
+      success: true,
+      data: {
+        deploymentId: 'deploy-123',
+        url: 'https://my-app.netlify.app',
+        status: 'building',
+      },
+    });
+
+    expect(projectDeployer.deployProject).toHaveBeenCalledWith({
+      projectId: 'proj-123',
+      userId: 'user-456',
+      platform: 'netlify',
+    });
+  });
+
+  it('should return 503 when Netlify is not configured', async () => {
+    vi.mocked(netlifyClient.isNetlifyConfigured).mockReturnValue(false);
+
+    const request = new NextRequest('http://localhost:3000/api/sandbox/deploy', {
+      method: 'POST',
+      body: JSON.stringify({
+        projectId: 'proj-123',
+        userId: 'user-456',
+        platform: 'netlify',
+      }),
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(data).toEqual({
+      success: false,
+      error: {
+        code: 'NETLIFY_NOT_CONFIGURED',
+        message: 'Netlify deployment is not configured. Please set NETLIFY_TOKEN environment variable.',
       },
     });
   });

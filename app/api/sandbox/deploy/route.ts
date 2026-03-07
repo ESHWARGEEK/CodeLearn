@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { deployProject, getDeploymentStatusById } from '@/lib/deployment/project-deployer';
 import { isVercelConfigured } from '@/lib/deployment/vercel-client';
+import { isNetlifyConfigured } from '@/lib/deployment/netlify-client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -81,16 +82,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (platform === 'netlify') {
+    if (platform === 'netlify' && !isNetlifyConfigured()) {
       return NextResponse.json(
         {
           success: false,
           error: {
-            code: 'NETLIFY_NOT_IMPLEMENTED',
-            message: 'Netlify deployment is not yet implemented',
+            code: 'NETLIFY_NOT_CONFIGURED',
+            message: 'Netlify deployment is not configured. Please set NETLIFY_TOKEN environment variable.',
           },
         },
-        { status: 501 }
+        { status: 503 }
       );
     }
 

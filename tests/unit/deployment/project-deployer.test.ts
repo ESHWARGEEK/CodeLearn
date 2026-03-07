@@ -7,11 +7,13 @@ import { deployProject, getDeploymentStatusById } from '@/lib/deployment/project
 import * as projectsDb from '@/lib/db/projects';
 import * as s3 from '@/lib/storage/s3';
 import * as vercelClient from '@/lib/deployment/vercel-client';
+import * as netlifyClient from '@/lib/deployment/netlify-client';
 import JSZip from 'jszip';
 
 vi.mock('@/lib/db/projects');
 vi.mock('@/lib/storage/s3');
 vi.mock('@/lib/deployment/vercel-client');
+vi.mock('@/lib/deployment/netlify-client');
 
 describe('Project Deployer', () => {
   beforeEach(() => {
@@ -195,9 +197,67 @@ describe('Project Deployer', () => {
         deployProject({
           projectId: 'proj-123',
           userId: 'user-456',
-          platform: 'netlify',
+          platform: 'unsupported' as any,
         })
-      ).rejects.toThrow('Platform netlify not yet implemented');
+      ).rejects.toThrow('Platform unsupported not supported');
+    });
+
+    it('should deploy a project to Netlify successfully', async () => {
+      const mockProject = {
+        PK: 'PROJECT#proj-123',
+        SK: 'USER#user-456',
+        name: 'My React App',
+        technology: 'react',
+        type: 'learning' as const,
+        status: 'active' as const,
+        progress: 100,
+        codeS3Key: 'user-456/proj-123/code.zip',
+        createdAt: 1709251200,
+        updatedAt: 1709251200,
+      };
+
+      const zip = new JSZip();
+      zip.file('package.json', JSON.stringify({ name: 'my-app' }));
+      zip.file('src/App.tsx', 'export default function App() {}');
+      const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+
+      const mockDeployment = {
+        id: 'deploy-123',
+        url: 'https://my-react-app.netlify.app',
+        status: 'building' as const,
+        state: 'building' as const,
+        createdAt: '2024-01-01T00:00:00Z',
+        siteId: 'site-456',
+        siteName: 'my-react-app',
+      };
+
+      vi.mocked(projectsDb.getProjectByUser).mockResolvedValue(mockProject);
+      vi.mocked(s3.getObject).mockResolvedValue(zipBuffer);
+      vi.mocked(netlifyClient.createDeployment).mockResolvedValue(mockDeployment);
+      vi.mocked(projectsDb.updateProjectDeployment).mockResolvedValue(undefined);
+
+      const result = await deployProject({
+        projectId: 'proj-123',
+        userId: 'user-456',
+        platform: 'netlify',
+      });
+
+      expect(result).toEqual({
+        deploymentId: 'deploy-123',
+        url: 'https://my-react-app.netlify.app',
+        status: 'building',
+        platform: 'netlify',
+      });
+
+      expect(netlifyClient.createDeployment).toHaveBeenCalledWith({
+        siteName: 'my-react-app',
+        files: expect.objectContaining({
+          'package.json': expect.any(String),
+          'src/App.tsx': expect.any(String),
+        }),
+        buildCommand: 'npm run build',
+        publishDirectory: 'build',
+      });
     });
 
     it('should sanitize project name for deployment', async () => {
@@ -268,10 +328,34 @@ describe('Project Deployer', () => {
       });
     });
 
+    it('should get Netlify deployment status', async () => {
+      const mockDeployment = {
+        id: 'deploy-123',
+        url: 'https://my-app.netlify.app',
+        status: 'ready' as const,
+        state: 'ready' as const,
+        createdAt: '2024-01-01T00:00:00Z',
+        deployedAt: '2024-01-01T00:05:00Z',
+        siteId: 'site-456',
+        siteName: 'my-app',
+      };
+
+      vi.mocked(netlifyClient.getDeploymentStatus).mockResolvedValue(mockDeployment);
+
+      const result = await getDeploymentStatusById('deploy-123', 'netlify');
+
+      expect(result).toEqual({
+        deploymentId: 'deploy-123',
+        url: 'https://my-app.netlify.app',
+        status: 'ready',
+        platform: 'netlify',
+      });
+    });
+
     it('should throw error for unsupported platform', async () => {
       await expect(
-        getDeploymentStatusById('dpl_123', 'netlify')
-      ).rejects.toThrow('Platform netlify not yet implemented');
+        getDeploymentStatusById('dpl_123', 'unsupported' as any)
+      ).rejects.toThrow('Platform unsupported not supported');
     });
   });
 });
