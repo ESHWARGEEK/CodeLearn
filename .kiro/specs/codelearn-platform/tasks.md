@@ -132,7 +132,7 @@ This document tracks the implementation of the CodeLearn AI Learning & Developer
 - [x] 9.1 Implement Vercel deployment integration
 - [x] 9.2 Implement Netlify deployment integration
 - [x] 9.3 Create POST /api/sandbox/deploy
-- [ ] 9.4 Add deployment status polling
+- [x] 9.4 Add deployment status polling
 - [ ] 9.5 Update portfolio with deployed projects
 
 ---
