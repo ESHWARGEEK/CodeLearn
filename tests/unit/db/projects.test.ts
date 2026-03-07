@@ -4,6 +4,7 @@ import {
   getProject,
   getProjectByUser,
   getProjectsByUser,
+  getDeployedProjectsByUser,
   updateProjectProgress,
   updateProjectCode,
   updateProjectDeployment,
@@ -322,7 +323,7 @@ describe('Projects Database Operations', () => {
   });
 
   describe('updateProjectDeployment', () => {
-    it('should update project deployment URL', async () => {
+    it('should update project deployment URL with platform and timestamp', async () => {
       const mockProject: Project = {
         PK: 'PROJECT#proj-123',
         SK: 'USER#user-456',
@@ -345,15 +346,185 @@ describe('Projects Database Operations', () => {
       await updateProjectDeployment(
         'proj-123',
         'user-456',
-        'https://my-app.vercel.app'
+        'https://my-app.vercel.app',
+        'vercel'
       );
 
       expect(mockPutItem).toHaveBeenCalledWith(
         'codelearn-projects-test',
         expect.objectContaining({
           deploymentUrl: 'https://my-app.vercel.app',
+          deploymentPlatform: 'vercel',
+          deployedAt: expect.any(Number),
+        })
+      );
+    });
+
+    it('should update deployment URL without platform', async () => {
+      const mockProject: Project = {
+        PK: 'PROJECT#proj-123',
+        SK: 'USER#user-456',
+        name: 'React Todo App',
+        technology: 'react',
+        type: 'learning',
+        status: 'active',
+        progress: 100,
+        codeS3Key: 'user-456/proj-123/code.zip',
+        createdAt: 1709251200,
+        updatedAt: 1709337600,
+      };
+
+      const mockGetItem = vi.mocked(dynamodb.getItem);
+      mockGetItem.mockResolvedValue(mockProject);
+
+      const mockPutItem = vi.mocked(dynamodb.putItem);
+      mockPutItem.mockResolvedValue();
+
+      await updateProjectDeployment(
+        'proj-123',
+        'user-456',
+        'https://my-app.netlify.app'
+      );
+
+      expect(mockPutItem).toHaveBeenCalledWith(
+        'codelearn-projects-test',
+        expect.objectContaining({
+          deploymentUrl: 'https://my-app.netlify.app',
+          deploymentPlatform: undefined,
+          deployedAt: expect.any(Number),
+        })
+      );
+    });
+
+    it('should support redeployment by updating existing deployment', async () => {
+      const mockProject: Project = {
+        PK: 'PROJECT#proj-123',
+        SK: 'USER#user-456',
+        name: 'React Todo App',
+        technology: 'react',
+        type: 'learning',
+        status: 'completed',
+        progress: 100,
+        codeS3Key: 'user-456/proj-123/code.zip',
+        deploymentUrl: 'https://old-url.vercel.app',
+        deploymentPlatform: 'vercel',
+        deployedAt: 1709251200,
+        createdAt: 1709251200,
+        updatedAt: 1709337600,
+      };
+
+      const mockGetItem = vi.mocked(dynamodb.getItem);
+      mockGetItem.mockResolvedValue(mockProject);
+
+      const mockPutItem = vi.mocked(dynamodb.putItem);
+      mockPutItem.mockResolvedValue();
+
+      await updateProjectDeployment(
+        'proj-123',
+        'user-456',
+        'https://new-url.vercel.app',
+        'vercel'
+      );
+
+      expect(mockPutItem).toHaveBeenCalledWith(
+        'codelearn-projects-test',
+        expect.objectContaining({
+          deploymentUrl: 'https://new-url.vercel.app',
+          deploymentPlatform: 'vercel',
+          deployedAt: expect.any(Number),
         })
       );
     });
   });
 });
+
+  describe('getDeployedProjectsByUser', () => {
+    it('should return only projects with deployment URLs', async () => {
+      const mockProjects: Project[] = [
+        {
+          PK: 'PROJECT#proj-123',
+          SK: 'USER#user-456',
+          name: 'Deployed App',
+          technology: 'react',
+          type: 'learning',
+          status: 'completed',
+          progress: 100,
+          codeS3Key: 'user-456/proj-123/code.zip',
+          deploymentUrl: 'https://deployed.vercel.app',
+          deploymentPlatform: 'vercel',
+          deployedAt: 1709337600,
+          createdAt: 1709251200,
+          updatedAt: 1709337600,
+        },
+        {
+          PK: 'PROJECT#proj-456',
+          SK: 'USER#user-456',
+          name: 'Not Deployed',
+          technology: 'vue',
+          type: 'learning',
+          status: 'active',
+          progress: 50,
+          codeS3Key: 'user-456/proj-456/code.zip',
+          createdAt: 1709251200,
+          updatedAt: 1709337600,
+        },
+        {
+          PK: 'PROJECT#proj-789',
+          SK: 'USER#user-456',
+          name: 'Another Deployed',
+          technology: 'nextjs',
+          type: 'custom',
+          status: 'completed',
+          progress: 100,
+          codeS3Key: 'user-456/proj-789/code.zip',
+          deploymentUrl: 'https://another.netlify.app',
+          deploymentPlatform: 'netlify',
+          deployedAt: 1709424000,
+          createdAt: 1709251200,
+          updatedAt: 1709424000,
+        },
+      ];
+
+      const mockQueryItems = vi.mocked(dynamodb.queryItems);
+      mockQueryItems.mockResolvedValue(mockProjects);
+
+      const result = await getDeployedProjectsByUser('user-456');
+
+      expect(result).toHaveLength(2);
+      expect(result[0].deploymentUrl).toBe('https://deployed.vercel.app');
+      expect(result[1].deploymentUrl).toBe('https://another.netlify.app');
+    });
+
+    it('should return empty array when no projects are deployed', async () => {
+      const mockProjects: Project[] = [
+        {
+          PK: 'PROJECT#proj-123',
+          SK: 'USER#user-456',
+          name: 'Not Deployed',
+          technology: 'react',
+          type: 'learning',
+          status: 'active',
+          progress: 50,
+          codeS3Key: 'user-456/proj-123/code.zip',
+          createdAt: 1709251200,
+          updatedAt: 1709337600,
+        },
+      ];
+
+      const mockQueryItems = vi.mocked(dynamodb.queryItems);
+      mockQueryItems.mockResolvedValue(mockProjects);
+
+      const result = await getDeployedProjectsByUser('user-456');
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('should return empty array when user has no projects', async () => {
+      const mockQueryItems = vi.mocked(dynamodb.queryItems);
+      mockQueryItems.mockResolvedValue([]);
+
+      const result = await getDeployedProjectsByUser('user-999');
+
+      expect(result).toHaveLength(0);
+    });
+  });

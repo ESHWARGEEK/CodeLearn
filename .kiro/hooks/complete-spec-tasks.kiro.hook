@@ -1,0 +1,15 @@
+{
+  "enabled": true,
+  "name": "Complete CodeLearn Spec Tasks",
+  "description": "Automatically prompts the agent to work through remaining tasks in specs/codelearn-platform/tasks.md sequentially, starting from the first incomplete task",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Review the tasks file at .kiro/specs/codelearn-platform/tasks.md and identify the next incomplete task (marked with [ ]). Then:\n\n1. Read the task requirements and all referenced design documents\n2. Implement the task following the exact specifications\n3. Use conventional commits as specified in the task\n4. Mark the task as complete by changing [ ] to [x] in tasks.md\n5. If the task includes a PR requirement, create a summary document for the PR\n6. Ask the user if they want to continue to the next task or stop\n\nFocus on one task at a time. Follow the implementation principles strictly:\n- Use exact versions from tech_stack.md\n- Use exact HTML/Tailwind from design.md\n- Follow Next.js 14 App Router patterns\n- Create feature branches for each major task group\n- Write tests as specified (unit, property, E2E)\n\nCurrent priority: Complete Task 4 remaining subtasks (4.2, 4.5), then proceed to Task 6 and beyond."
+  },
+  "workspaceFolderName": "Vibe_coding",
+  "shortName": "complete-spec-tasks"
+}

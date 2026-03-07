@@ -22,6 +22,8 @@ export interface Project {
   codeS3Key: string;       // S3 reference
   githubSourceUrl?: string;
   deploymentUrl?: string;
+  deploymentPlatform?: 'vercel' | 'netlify';
+  deployedAt?: number;     // Unix timestamp
   learningPathKey?: string; // "TECH#{technology}#DIFF#{difficulty}" for linking to learning path
   createdAt: number;
   updatedAt: number;
@@ -172,7 +174,8 @@ export async function updateProjectCode(
 export async function updateProjectDeployment(
   projectId: string,
   userId: string,
-  deploymentUrl: string
+  deploymentUrl: string,
+  platform?: 'vercel' | 'netlify'
 ): Promise<void> {
   const project = await getProjectByUser(projectId, userId);
   if (!project) {
@@ -183,8 +186,18 @@ export async function updateProjectDeployment(
   const updatedProject: Project = {
     ...project,
     deploymentUrl,
+    deploymentPlatform: platform,
+    deployedAt: now,
     updatedAt: now,
   };
 
   await putItem(TABLES.PROJECTS, updatedProject as unknown as Record<string, unknown>);
+}
+
+/**
+ * Get all projects with deployments for a user (for portfolio)
+ */
+export async function getDeployedProjectsByUser(userId: string): Promise<Project[]> {
+  const allProjects = await getProjectsByUser(userId);
+  return allProjects.filter(project => project.deploymentUrl);
 }
