@@ -54,40 +54,271 @@ export default function AIMentorChat({ context, className }: AIMentorChatProps) 
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const questionText = input;
     setInput('');
     setIsLoading(true);
 
-    try {
-      // TODO: Replace with actual API call to POST /api/ai/mentor/chat
-      // For now, simulate AI response
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Create a placeholder AI message for streaming
+    const aiMessageId = (Date.now() + 1).toString();
+    const aiMessage: Message = {
+      id: aiMessageId,
+      role: 'ai',
+      content: '',
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, aiMessage]);
 
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'ai',
-        content:
-          'Great question! Let me help you with that. [This will be replaced with actual AI response from Claude 3.5]',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiMessage]);
+    try {
+      // Build conversation history from messages (exclude the welcome message and current messages)
+      const conversationHistory = messages
+        .slice(1) // Skip welcome message
+        .map((msg) => ({
+          role: msg.role === 'user' ? ('user' as const) : ('assistant' as const),
+          content: msg.content,
+        }));
+
+      // Call the AI Mentor API with streaming enabled
+      const response = await fetch('/api/ai/mentor/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: questionText,
+          responseType: 'chat',
+          taskContext: context?.currentTask,
+          codeContext: context?.code,
+          conversationHistory,
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      let accumulatedContent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        // Decode the chunk
+        const chunk = decoder.decode(value, { stream: true });
+        
+        // Parse Server-Sent Events format
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.error) {
+                throw new Error(data.error);
+              }
+              
+              if (data.done) {
+                // Streaming complete
+                break;
+              }
+              
+              if (data.chunk) {
+                accumulatedContent += data.chunk;
+                
+                // Update the AI message with accumulated content
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === aiMessageId
+                      ? { ...msg, content: accumulatedContent }
+                      : msg
+                  )
+                );
+              }
+            } catch (parseError) {
+              console.error('Error parsing SSE data:', parseError);
+            }
+          }
+        }
+      }
+
+      // If no content was received, show error
+      if (!accumulatedContent) {
+        throw new Error('No response received');
+      }
     } catch (error) {
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'ai',
-        content:
-          "I'm sorry, I encountered an error. Please try again or check the documentation for help.",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      console.error('AI Mentor error:', error);
+      
+      // Update the AI message with error content
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === aiMessageId
+            ? {
+                ...msg,
+                content:
+                  "I'm sorry, I encountered an error. Please try again or check the documentation for help.",
+              }
+            : msg
+        )
+      );
     } finally {
       setIsLoading(false);
       inputRef.current?.focus();
     }
   };
 
-  const handleQuickAction = (action: string, prompt: string) => {
-    setInput(prompt);
-    inputRef.current?.focus();
+  const handleQuickAction = async (action: string, prompt: string) => {
+    if (isLoading) return;
+
+    // Build context-aware prompt
+    let contextualPrompt = prompt;
+    
+    if (context?.code) {
+      contextualPrompt += `\n\nHere's my current code:\n\`\`\`\n${context.code}\n\`\`\``;
+    }
+    
+    if (context?.currentTask) {
+      contextualPrompt += `\n\nI'm working on: ${context.currentTask}`;
+    }
+
+    // Create user message
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: prompt, // Display the short version to user
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setIsLoading(true);
+
+    // Create a placeholder AI message for streaming
+    const aiMessageId = (Date.now() + 1).toString();
+    const aiMessage: Message = {
+      id: aiMessageId,
+      role: 'ai',
+      content: '',
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, aiMessage]);
+
+    try {
+      // Build conversation history
+      const conversationHistory = messages
+        .slice(1) // Skip welcome message
+        .map((msg) => ({
+          role: msg.role === 'user' ? ('user' as const) : ('assistant' as const),
+          content: msg.content,
+        }));
+
+      // Call the AI Mentor API with streaming enabled and full context
+      const response = await fetch('/api/ai/mentor/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: contextualPrompt, // Send full contextual prompt
+          responseType: action === 'explain' ? 'explanation' : action === 'bugs' ? 'debug' : 'optimization',
+          taskContext: context?.currentTask,
+          codeContext: context?.code,
+          conversationHistory,
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      let accumulatedContent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        // Decode the chunk
+        const chunk = decoder.decode(value, { stream: true });
+        
+        // Parse Server-Sent Events format
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.error) {
+                throw new Error(data.error);
+              }
+              
+              if (data.done) {
+                // Streaming complete
+                break;
+              }
+              
+              if (data.chunk) {
+                accumulatedContent += data.chunk;
+                
+                // Update the AI message with accumulated content
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === aiMessageId
+                      ? { ...msg, content: accumulatedContent }
+                      : msg
+                  )
+                );
+              }
+            } catch (parseError) {
+              console.error('Error parsing SSE data:', parseError);
+            }
+          }
+        }
+      }
+
+      // If no content was received, show error
+      if (!accumulatedContent) {
+        throw new Error('No response received');
+      }
+    } catch (error) {
+      console.error('AI Mentor error:', error);
+      
+      // Update the AI message with error content
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === aiMessageId
+            ? {
+                ...msg,
+                content:
+                  "I'm sorry, I encountered an error. Please try again or check the documentation for help.",
+              }
+            : msg
+        )
+      );
+    } finally {
+      setIsLoading(false);
+      inputRef.current?.focus();
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
