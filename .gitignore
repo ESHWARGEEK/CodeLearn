@@ -44,9 +44,9 @@ next-env.d.ts
 
 # CDK
 cdk.out/
-*.js
-*.d.ts
-!jest.config.js
+infrastructure/**/*.js
+infrastructure/**/*.d.ts
+!infrastructure/**/jest.config.js
 
 # Scripts with real OAuth credentials (use .template versions)
 scripts/add-google-oauth.ps1
