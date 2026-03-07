@@ -84,7 +84,8 @@ describe('Project Deployer', () => {
       expect(projectsDb.updateProjectDeployment).toHaveBeenCalledWith(
         'proj-123',
         'user-456',
-        'https://my-react-app.vercel.app'
+        'https://my-react-app.vercel.app',
+        'vercel'
       );
     });
 

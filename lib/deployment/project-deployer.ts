@@ -65,7 +65,7 @@ export async function deployProject(
   }
 
   // Update project with deployment URL
-  await updateProjectDeployment(request.projectId, request.userId, deploymentUrl);
+  await updateProjectDeployment(request.projectId, request.userId, deploymentUrl, request.platform);
 
   return {
     deploymentId,
