@@ -3,8 +3,8 @@ import { getCurrentUser } from '@/lib/auth/cognito';
 import { getTemplate } from '@/lib/db/templates';
 import { getProjectByUser } from '@/lib/db/projects';
 import { createJob } from '@/lib/db/jobs';
-import { createIntegration, getMonthlyIntegrationCount } from '@/lib/db/integrations';
-import { checkIntegrationLimit } from '@/lib/db/users';
+import { createIntegration } from '@/lib/db/integrations';
+import { withRateLimit } from '@/lib/middleware/rate-limiting';
 
 interface IntegrateRequest {
   templateId: string;
@@ -24,7 +24,7 @@ interface IntegrateResponse {
   };
 }
 
-export async function POST(request: NextRequest) {
+async function handleIntegrate(request: NextRequest) {
   try {
     // Get current user
     const user = await getCurrentUser(request);
@@ -80,21 +80,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 404 });
     }
 
-    // Check user's integration limits
-    const currentCount = await getMonthlyIntegrationCount(user.userId);
-    const limitCheck = await checkIntegrationLimit(user.userId, currentCount);
-    
-    if (!limitCheck.allowed) {
-      const errorResponse: IntegrateResponse = {
-        success: false,
-        error: {
-          code: 'INTEGRATION_LIMIT_EXCEEDED',
-          message: `Integration limit exceeded. Free users can perform ${limitCheck.limit} integrations per month. Upgrade to Pro for unlimited integrations.`,
-        },
-      };
-      return NextResponse.json(errorResponse, { status: 429 });
-    }
-
     // Generate unique IDs
     const jobId = `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const integrationId = `int_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -143,3 +128,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
+
+// Apply rate limiting middleware
+export const POST = withRateLimit('integrations', handleIntegrate);
