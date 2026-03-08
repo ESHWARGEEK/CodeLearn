@@ -79,3 +79,42 @@ export const TEMPLATE_TECHNOLOGIES = [
 ] as const;
 
 export type TemplateTechnology = typeof TEMPLATE_TECHNOLOGIES[number];
+
+// Template Extraction Types
+export interface ExtractableComponent {
+  id: string;
+  name: string;
+  description: string;
+  filePath: string;
+  dependencies: string[];
+  category: TemplateCategory;
+  complexity: 'simple' | 'moderate' | 'complex';
+}
+
+export interface ExtractionRequest {
+  githubUrl: string;
+  componentPath?: string;
+}
+
+export interface ExtractionResponse {
+  success: boolean;
+  data?: {
+    jobId: string;
+    status: 'queued';
+  };
+  error?: {
+    code: string;
+    message: string;
+  };
+}
+
+export interface ExtractionResult {
+  components: ExtractableComponent[];
+  repositoryInfo: {
+    name: string;
+    description: string;
+    stars: number;
+    language: string;
+    license: string;
+  };
+}

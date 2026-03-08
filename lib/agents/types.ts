@@ -103,3 +103,31 @@ export interface MentorOutput {
   responseType: MentorResponseType;
   timestamp: number;
 }
+
+// Code Agent Types
+
+export interface CodeAgentInput {
+  githubUrl: string;
+  componentPath?: string;
+}
+
+export interface CodeAgentOutput {
+  components: ExtractableComponent[];
+  repositoryInfo: {
+    name: string;
+    description: string;
+    stars: number;
+    language: string;
+    license: string;
+  };
+}
+
+export interface ExtractableComponent {
+  id: string;
+  name: string;
+  description: string;
+  filePath: string;
+  dependencies: string[];
+  category: string;
+  complexity: 'simple' | 'moderate' | 'complex';
+}
