@@ -4,6 +4,7 @@ import { DatabaseStack } from '../lib/database-stack';
 import { StorageStack } from '../lib/storage-stack';
 import { AuthStack } from '../lib/auth-stack';
 import { QueueStack } from '../lib/queue-stack';
+import { ComputeStack } from '../lib/compute-stack';
 
 const app = new cdk.App();
 
@@ -59,5 +60,22 @@ const queueStack = new QueueStack(app, `CodeLearn-Queue-${env}`, {
     ManagedBy: 'CDK',
   },
 });
+
+// Compute Stack - ECS Fargate for AI Workers
+const computeStack = new ComputeStack(app, `CodeLearn-Compute-${env}`, {
+  env: { account, region },
+  stackName: `codelearn-compute-${env}`,
+  description: 'ECS Fargate cluster for AI worker services',
+  aiJobsQueue: queueStack.aiJobsQueue,
+  aiJobsDlq: queueStack.aiJobsDlq,
+  tags: {
+    Environment: env,
+    Project: 'CodeLearn',
+    ManagedBy: 'CDK',
+  },
+});
+
+// Add dependencies
+computeStack.addDependency(queueStack);
 
 app.synth();
