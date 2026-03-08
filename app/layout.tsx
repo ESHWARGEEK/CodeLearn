@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Inter, Space_Grotesk } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
-import { AuthProvider } from '@/lib/auth/auth-context';
 
 const inter = Inter({ subsets: ['latin'] });
 const spaceGrotesk = Space_Grotesk({
@@ -30,7 +29,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} ${spaceGrotesk.variable}`}>
-        <AuthProvider>{children}</AuthProvider>
+        {children}
       </body>
     </html>
   );

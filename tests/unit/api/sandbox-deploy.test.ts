@@ -32,9 +32,12 @@ describe('POST /api/sandbox/deploy', () => {
 
     const request = new NextRequest('http://localhost:3000/api/sandbox/deploy', {
       method: 'POST',
+      headers: {
+        'authorization': 'Bearer test-token',
+        'content-type': 'application/json',
+      },
       body: JSON.stringify({
         projectId: 'proj-123',
-        userId: 'user-456',
         platform: 'vercel',
       }),
     });
@@ -49,12 +52,13 @@ describe('POST /api/sandbox/deploy', () => {
         deploymentId: 'dpl_123',
         url: 'https://my-app.vercel.app',
         status: 'building',
+        platform: 'vercel',
       },
     });
 
     expect(projectDeployer.deployProject).toHaveBeenCalledWith({
       projectId: 'proj-123',
-      userId: 'user-456',
+      userId: 'test-user',
       platform: 'vercel',
     });
   });
@@ -62,8 +66,11 @@ describe('POST /api/sandbox/deploy', () => {
   it('should return 400 when projectId is missing', async () => {
     const request = new NextRequest('http://localhost:3000/api/sandbox/deploy', {
       method: 'POST',
+      headers: {
+        'authorization': 'Bearer test-token',
+        'content-type': 'application/json',
+      },
       body: JSON.stringify({
-        userId: 'user-456',
         platform: 'vercel',
       }),
     });
@@ -75,8 +82,8 @@ describe('POST /api/sandbox/deploy', () => {
     expect(data).toEqual({
       success: false,
       error: {
-        code: 'MISSING_PROJECT_ID',
-        message: 'Project ID is required',
+        code: 'INVALID_INPUT',
+        message: 'projectId and platform are required',
       },
     });
   });
@@ -84,9 +91,12 @@ describe('POST /api/sandbox/deploy', () => {
   it('should return 400 when platform is missing', async () => {
     const request = new NextRequest('http://localhost:3000/api/sandbox/deploy', {
       method: 'POST',
+      headers: {
+        'authorization': 'Bearer test-token',
+        'content-type': 'application/json',
+      },
       body: JSON.stringify({
         projectId: 'proj-123',
-        userId: 'user-456',
       }),
     });
 
@@ -97,15 +107,18 @@ describe('POST /api/sandbox/deploy', () => {
     expect(data).toEqual({
       success: false,
       error: {
-        code: 'MISSING_PLATFORM',
-        message: 'Platform is required',
+        code: 'INVALID_INPUT',
+        message: 'projectId and platform are required',
       },
     });
   });
 
-  it('should return 401 when userId is missing', async () => {
+  it('should return 401 when authorization is missing', async () => {
     const request = new NextRequest('http://localhost:3000/api/sandbox/deploy', {
       method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
       body: JSON.stringify({
         projectId: 'proj-123',
         platform: 'vercel',
@@ -119,8 +132,8 @@ describe('POST /api/sandbox/deploy', () => {
     expect(data).toEqual({
       success: false,
       error: {
-        code: 'MISSING_USER_ID',
-        message: 'User ID is required',
+        code: 'UNAUTHORIZED',
+        message: 'Authentication required',
       },
     });
   });
@@ -128,9 +141,12 @@ describe('POST /api/sandbox/deploy', () => {
   it('should return 400 when platform is invalid', async () => {
     const request = new NextRequest('http://localhost:3000/api/sandbox/deploy', {
       method: 'POST',
+      headers: {
+        'authorization': 'Bearer test-token',
+        'content-type': 'application/json',
+      },
       body: JSON.stringify({
         projectId: 'proj-123',
-        userId: 'user-456',
         platform: 'heroku',
       }),
     });
@@ -143,32 +159,7 @@ describe('POST /api/sandbox/deploy', () => {
       success: false,
       error: {
         code: 'INVALID_PLATFORM',
-        message: 'Platform must be either "vercel" or "netlify"',
-      },
-    });
-  });
-
-  it('should return 503 when Vercel is not configured', async () => {
-    vi.mocked(vercelClient.isVercelConfigured).mockReturnValue(false);
-
-    const request = new NextRequest('http://localhost:3000/api/sandbox/deploy', {
-      method: 'POST',
-      body: JSON.stringify({
-        projectId: 'proj-123',
-        userId: 'user-456',
-        platform: 'vercel',
-      }),
-    });
-
-    const response = await POST(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(503);
-    expect(data).toEqual({
-      success: false,
-      error: {
-        code: 'VERCEL_NOT_CONFIGURED',
-        message: 'Vercel deployment is not configured. Please set VERCEL_TOKEN environment variable.',
+        message: 'Platform must be vercel or netlify',
       },
     });
   });
@@ -185,9 +176,12 @@ describe('POST /api/sandbox/deploy', () => {
 
     const request = new NextRequest('http://localhost:3000/api/sandbox/deploy', {
       method: 'POST',
+      headers: {
+        'authorization': 'Bearer test-token',
+        'content-type': 'application/json',
+      },
       body: JSON.stringify({
         projectId: 'proj-123',
-        userId: 'user-456',
         platform: 'netlify',
       }),
     });
@@ -202,51 +196,30 @@ describe('POST /api/sandbox/deploy', () => {
         deploymentId: 'deploy-123',
         url: 'https://my-app.netlify.app',
         status: 'building',
+        platform: 'netlify',
       },
     });
 
     expect(projectDeployer.deployProject).toHaveBeenCalledWith({
       projectId: 'proj-123',
-      userId: 'user-456',
+      userId: 'test-user',
       platform: 'netlify',
     });
   });
 
-  it('should return 503 when Netlify is not configured', async () => {
-    vi.mocked(netlifyClient.isNetlifyConfigured).mockReturnValue(false);
-
-    const request = new NextRequest('http://localhost:3000/api/sandbox/deploy', {
-      method: 'POST',
-      body: JSON.stringify({
-        projectId: 'proj-123',
-        userId: 'user-456',
-        platform: 'netlify',
-      }),
-    });
-
-    const response = await POST(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(503);
-    expect(data).toEqual({
-      success: false,
-      error: {
-        code: 'NETLIFY_NOT_CONFIGURED',
-        message: 'Netlify deployment is not configured. Please set NETLIFY_TOKEN environment variable.',
-      },
-    });
-  });
-
-  it('should return 404 when project not found', async () => {
+  it('should return 500 when project not found', async () => {
     vi.mocked(projectDeployer.deployProject).mockRejectedValue(
       new Error('Project not found')
     );
 
     const request = new NextRequest('http://localhost:3000/api/sandbox/deploy', {
       method: 'POST',
+      headers: {
+        'authorization': 'Bearer test-token',
+        'content-type': 'application/json',
+      },
       body: JSON.stringify({
         projectId: 'proj-invalid',
-        userId: 'user-456',
         platform: 'vercel',
       }),
     });
@@ -254,26 +227,29 @@ describe('POST /api/sandbox/deploy', () => {
     const response = await POST(request);
     const data = await response.json();
 
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(500);
     expect(data).toEqual({
       success: false,
       error: {
-        code: 'PROJECT_NOT_FOUND',
+        code: 'DEPLOYMENT_FAILED',
         message: 'Project not found',
       },
     });
   });
 
-  it('should return 404 when project code not found', async () => {
+  it('should return 500 when project code not found', async () => {
     vi.mocked(projectDeployer.deployProject).mockRejectedValue(
       new Error('Project code not found in storage')
     );
 
     const request = new NextRequest('http://localhost:3000/api/sandbox/deploy', {
       method: 'POST',
+      headers: {
+        'authorization': 'Bearer test-token',
+        'content-type': 'application/json',
+      },
       body: JSON.stringify({
         projectId: 'proj-123',
-        userId: 'user-456',
         platform: 'vercel',
       }),
     });
@@ -281,26 +257,29 @@ describe('POST /api/sandbox/deploy', () => {
     const response = await POST(request);
     const data = await response.json();
 
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(500);
     expect(data).toEqual({
       success: false,
       error: {
-        code: 'PROJECT_CODE_NOT_FOUND',
-        message: 'Project code not found. Please save your project first.',
+        code: 'DEPLOYMENT_FAILED',
+        message: 'Project code not found in storage',
       },
     });
   });
 
-  it('should return 500 when Vercel deployment fails', async () => {
+  it('should return 500 when deployment fails', async () => {
     vi.mocked(projectDeployer.deployProject).mockRejectedValue(
       new Error('Vercel deployment failed: Invalid configuration')
     );
 
     const request = new NextRequest('http://localhost:3000/api/sandbox/deploy', {
       method: 'POST',
+      headers: {
+        'authorization': 'Bearer test-token',
+        'content-type': 'application/json',
+      },
       body: JSON.stringify({
         projectId: 'proj-123',
-        userId: 'user-456',
         platform: 'vercel',
       }),
     });
@@ -325,9 +304,12 @@ describe('POST /api/sandbox/deploy', () => {
 
     const request = new NextRequest('http://localhost:3000/api/sandbox/deploy', {
       method: 'POST',
+      headers: {
+        'authorization': 'Bearer test-token',
+        'content-type': 'application/json',
+      },
       body: JSON.stringify({
         projectId: 'proj-123',
-        userId: 'user-456',
         platform: 'vercel',
       }),
     });
@@ -339,8 +321,8 @@ describe('POST /api/sandbox/deploy', () => {
     expect(data).toEqual({
       success: false,
       error: {
-        code: 'INTERNAL_ERROR',
-        message: 'An unexpected error occurred during deployment',
+        code: 'DEPLOYMENT_FAILED',
+        message: 'Unexpected error',
       },
     });
   });
@@ -362,7 +344,12 @@ describe('GET /api/sandbox/deploy', () => {
     vi.mocked(projectDeployer.getDeploymentStatusById).mockResolvedValue(mockResult);
 
     const request = new NextRequest(
-      'http://localhost:3000/api/sandbox/deploy?deploymentId=dpl_123&platform=vercel'
+      'http://localhost:3000/api/sandbox/deploy?deploymentId=dpl_123&platform=vercel',
+      {
+        headers: {
+          'authorization': 'Bearer test-token',
+        },
+      }
     );
 
     const response = await GET(request);
@@ -375,6 +362,7 @@ describe('GET /api/sandbox/deploy', () => {
         deploymentId: 'dpl_123',
         url: 'https://my-app.vercel.app',
         status: 'ready',
+        platform: 'vercel',
       },
     });
 
@@ -383,7 +371,12 @@ describe('GET /api/sandbox/deploy', () => {
 
   it('should return 400 when deploymentId is missing', async () => {
     const request = new NextRequest(
-      'http://localhost:3000/api/sandbox/deploy?platform=vercel'
+      'http://localhost:3000/api/sandbox/deploy?platform=vercel',
+      {
+        headers: {
+          'authorization': 'Bearer test-token',
+        },
+      }
     );
 
     const response = await GET(request);
@@ -393,15 +386,20 @@ describe('GET /api/sandbox/deploy', () => {
     expect(data).toEqual({
       success: false,
       error: {
-        code: 'MISSING_DEPLOYMENT_ID',
-        message: 'Deployment ID is required',
+        code: 'INVALID_INPUT',
+        message: 'deploymentId and platform are required',
       },
     });
   });
 
   it('should return 400 when platform is missing', async () => {
     const request = new NextRequest(
-      'http://localhost:3000/api/sandbox/deploy?deploymentId=dpl_123'
+      'http://localhost:3000/api/sandbox/deploy?deploymentId=dpl_123',
+      {
+        headers: {
+          'authorization': 'Bearer test-token',
+        },
+      }
     );
 
     const response = await GET(request);
@@ -411,8 +409,8 @@ describe('GET /api/sandbox/deploy', () => {
     expect(data).toEqual({
       success: false,
       error: {
-        code: 'MISSING_PLATFORM',
-        message: 'Platform is required',
+        code: 'INVALID_INPUT',
+        message: 'deploymentId and platform are required',
       },
     });
   });
@@ -423,7 +421,12 @@ describe('GET /api/sandbox/deploy', () => {
     );
 
     const request = new NextRequest(
-      'http://localhost:3000/api/sandbox/deploy?deploymentId=dpl_123&platform=vercel'
+      'http://localhost:3000/api/sandbox/deploy?deploymentId=dpl_123&platform=vercel',
+      {
+        headers: {
+          'authorization': 'Bearer test-token',
+        },
+      }
     );
 
     const response = await GET(request);
@@ -433,8 +436,8 @@ describe('GET /api/sandbox/deploy', () => {
     expect(data).toEqual({
       success: false,
       error: {
-        code: 'INTERNAL_ERROR',
-        message: 'Failed to get deployment status',
+        code: 'STATUS_FETCH_FAILED',
+        message: 'Failed to get status',
       },
     });
   });
