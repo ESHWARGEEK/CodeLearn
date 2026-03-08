@@ -2,7 +2,7 @@
  * Unit tests for Netlify deployment client
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   createDeployment,
   getDeploymentStatus,
@@ -11,19 +11,13 @@ import {
   isNetlifyConfigured,
 } from '@/lib/deployment/netlify-client';
 
-// Mock environment variables
-const originalEnv = process.env;
+// Mock fetch
+global.fetch = vi.fn();
 
 describe('Netlify Client', () => {
   beforeEach(() => {
-    vi.resetModules();
-    process.env = { ...originalEnv };
-    global.fetch = vi.fn();
-  });
-
-  afterEach(() => {
-    process.env = originalEnv;
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
+    process.env.NETLIFY_TOKEN = 'test-netlify-token';
   });
 
   describe('isNetlifyConfigured', () => {

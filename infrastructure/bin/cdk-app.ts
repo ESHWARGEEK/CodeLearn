@@ -4,8 +4,12 @@ import { DatabaseStack } from '../lib/database-stack';
 import { StorageStack } from '../lib/storage-stack';
 import { AuthStack } from '../lib/auth-stack';
 import { QueueStack } from '../lib/queue-stack';
+<<<<<<< HEAD
 import { SandboxStack } from '../lib/sandbox-stack';
 import { FargateSandboxStack } from '../lib/fargate-sandbox-stack';
+=======
+import { ComputeStack } from '../lib/compute-stack';
+>>>>>>> origin/feature/task-16-ai-workers
 
 const app = new cdk.App();
 
@@ -62,11 +66,21 @@ const queueStack = new QueueStack(app, `CodeLearn-Queue-${env}`, {
   },
 });
 
+<<<<<<< HEAD
 // Sandbox Stack - Lambda function for code execution
 const sandboxStack = new SandboxStack(app, `CodeLearn-Sandbox-${env}`, {
   env: { account, region },
   stackName: `codelearn-sandbox-${env}`,
   description: 'Lambda function for isolated code execution',
+=======
+// Compute Stack - ECS Fargate for AI Workers
+const computeStack = new ComputeStack(app, `CodeLearn-Compute-${env}`, {
+  env: { account, region },
+  stackName: `codelearn-compute-${env}`,
+  description: 'ECS Fargate cluster for AI worker services',
+  aiJobsQueue: queueStack.aiJobsQueue,
+  aiJobsDlq: queueStack.aiJobsDlq,
+>>>>>>> origin/feature/task-16-ai-workers
   tags: {
     Environment: env,
     Project: 'CodeLearn',
@@ -74,6 +88,7 @@ const sandboxStack = new SandboxStack(app, `CodeLearn-Sandbox-${env}`, {
   },
 });
 
+<<<<<<< HEAD
 // Fargate Sandbox Stack - ECS Fargate for complex execution
 const fargateSandboxStack = new FargateSandboxStack(
   app,
@@ -89,5 +104,9 @@ const fargateSandboxStack = new FargateSandboxStack(
     },
   }
 );
+=======
+// Add dependencies
+computeStack.addDependency(queueStack);
+>>>>>>> origin/feature/task-16-ai-workers
 
 app.synth();

@@ -82,7 +82,7 @@ export async function getProject(projectId: string): Promise<Project | null> {
     return null;
   }
 
-  return items[0] as Project;
+  return items[0]! as Project;
 }
 
 /**
@@ -195,9 +195,21 @@ export async function updateProjectDeployment(
 }
 
 /**
- * Get all projects with deployments for a user (for portfolio)
+ * Get all completed projects with deployments for a user (for portfolio)
+ * Requirements 9.3: "display all completed projects with live links"
  */
 export async function getDeployedProjectsByUser(userId: string): Promise<Project[]> {
   const allProjects = await getProjectsByUser(userId);
-  return allProjects.filter(project => project.deploymentUrl);
+  return allProjects.filter(project => 
+    project.status === 'completed' && project.deploymentUrl
+  );
 }
+
+/**
+ * Get all completed projects for a user (regardless of deployment status)
+ */
+export async function getCompletedProjectsByUser(userId: string): Promise<Project[]> {
+  const allProjects = await getProjectsByUser(userId);
+  return allProjects.filter(project => project.status === 'completed');
+}
+

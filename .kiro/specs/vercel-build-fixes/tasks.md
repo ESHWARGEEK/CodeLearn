@@ -1,0 +1,125 @@
+# Implementation Plan
+
+- [x] 1. Write bug condition exploration test
+  - **Property 1: Fault Condition** - Module Resolution Failures Across Feature Branches
+  - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
+  - **DO NOT attempt to fix the test or the code when it fails**
+  - **NOTE**: This test encodes the expected behavior - it will validate the fix when it passes after implementation
+  - **GOAL**: Surface counterexamples that demonstrate the build failures exist
+  - **Scoped PBT Approach**: Test each feature branch (tasks 9-16) for specific module resolution failures
+  - Test that Vercel builds fail with "Module not found" errors for:
+    - Task 9: '@/lib/deployment/project-deployer' and '@/lib/auth/verify'
+    - Tasks 10-14: '@/components/ui/card', '@/components/ui/button', '@/components/ui/input'
+    - Tasks 11-14: '@/components/developer/TemplateLibrary'
+    - Task 15: '@/components/billing/BillingManagement'
+    - Task 16: '@/components/learning/TechnologySelector'
+  - Run test on UNFIXED code (current feature branches)
+  - **EXPECTED OUTCOME**: Test FAILS (this is correct - it proves the bug exists)
+  - Document counterexamples found (specific branches and missing modules)
+  - Mark task complete when test is written, run, and failure is documented
+  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8_
+
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** - Existing Build Success
+  - **IMPORTANT**: Follow observation-first methodology
+  - Observe behavior on UNFIXED code for non-buggy branches (main branch, unaffected feature branches)
+  - Write property-based tests capturing observed behavior patterns:
+    - Main branch builds successfully
+    - Existing working feature branches continue to build
+    - Existing component imports resolve correctly
+    - TypeScript type checking passes for all existing code
+    - Next.js module resolution works for existing @/ aliases
+  - Property-based testing generates many test cases for stronger guarantees
+  - Run tests on UNFIXED code
+  - **EXPECTED OUTCOME**: Tests PASS (this confirms baseline behavior to preserve)
+  - Mark task complete when tests are written, run, and passing on unfixed code
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
+
+- [x] 3. Fix Vercel build errors across all feature branches
+
+  - [x] 3.1 Create TemplateLibrary stub component
+    - Create file: `components/developer/TemplateLibrary.tsx`
+    - Implement minimal React functional component with TypeScript
+    - Export default component to satisfy imports in tasks 11-14
+    - Return placeholder UI indicating "coming soon" status
+    - Follow existing component patterns in codebase
+    - _Bug_Condition: isBugCondition(input) where input.branch IN ['feature/task-11-template-library', 'feature/task-12-template-extraction', 'feature/task-13-code-integration', 'feature/task-14-rate-limiting'] AND input.importPath = '@/components/developer/TemplateLibrary' AND fileExists(input.importPath, input.branch) = false_
+    - _Expected_Behavior: Vercel build successfully resolves '@/components/developer/TemplateLibrary' import and completes build without MODULE_NOT_FOUND errors_
+    - _Preservation: Main branch builds and unaffected feature branches continue to build successfully without modification_
+    - _Requirements: 1.3, 1.4, 1.5, 1.6, 2.3, 2.4, 2.5, 2.6, 3.1, 3.2, 3.4_
+
+  - [x] 3.2 Create BillingManagement stub component
+    - Create file: `components/billing/BillingManagement.tsx`
+    - Implement minimal React functional component with TypeScript
+    - Export default component to satisfy imports in task 15
+    - Return placeholder UI indicating billing features in development
+    - Follow existing component patterns in codebase
+    - _Bug_Condition: isBugCondition(input) where input.branch = 'feature/task-15-payments' AND input.importPath = '@/components/billing/BillingManagement' AND fileExists(input.importPath, input.branch) = false_
+    - _Expected_Behavior: Vercel build successfully resolves '@/components/billing/BillingManagement' import and completes build without MODULE_NOT_FOUND errors_
+    - _Preservation: Main branch builds and unaffected feature branches continue to build successfully without modification_
+    - _Requirements: 1.7, 2.7, 3.1, 3.2, 3.4_
+
+  - [x] 3.3 Verify and sync deployment modules for Task 9
+    - Check if `lib/deployment/project-deployer.ts` exists in feature/task-9-deployment branch
+    - Check if `lib/auth/verify.ts` exists in feature/task-9-deployment branch
+    - If missing, copy files from main branch to feature branch
+    - Verify exports match what's imported in `app/api/sandbox/deploy/route.ts`
+    - Ensure proper TypeScript types are maintained
+    - _Bug_Condition: isBugCondition(input) where input.branch = 'feature/task-9-deployment' AND input.importPath IN ['@/lib/deployment/project-deployer', '@/lib/auth/verify'] AND fileExists(input.importPath, input.branch) = false_
+    - _Expected_Behavior: Vercel build successfully resolves deployment module imports and completes build without MODULE_NOT_FOUND errors_
+    - _Preservation: Main branch builds and existing deployment functionality continue to work without modification_
+    - _Requirements: 1.1, 2.1, 3.1, 3.2, 3.4_
+
+  - [x] 3.4 Verify and sync UI components for Tasks 10-15
+    - Check if `components/ui/button.tsx` exists in affected branches with proper exports
+    - Check if `components/ui/card.tsx` exists in affected branches with proper exports
+    - Check if `components/ui/input.tsx` exists in affected branches with proper exports
+    - Verify expected exports:
+      - button.tsx: `export { Button, buttonVariants }`
+      - card.tsx: `export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }`
+      - input.tsx: `export { Input }`
+    - If missing or incorrect, copy from main branch to each affected feature branch
+    - _Bug_Condition: isBugCondition(input) where input.branch IN ['feature/task-10-portfolio', 'feature/task-11-template-library', 'feature/task-12-template-extraction', 'feature/task-13-code-integration', 'feature/task-14-rate-limiting', 'feature/task-15-payments'] AND input.importPath IN ['@/components/ui/button', '@/components/ui/card', '@/components/ui/input'] AND fileExists(input.importPath, input.branch) = false_
+    - _Expected_Behavior: Vercel build successfully resolves UI component imports and completes build without MODULE_NOT_FOUND errors_
+    - _Preservation: Main branch builds and existing UI component usage continue to work without modification_
+    - _Requirements: 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 3.1, 3.2, 3.4_
+
+  - [x] 3.5 Verify and sync TechnologySelector for Task 16
+    - Check if `components/learning/TechnologySelector.tsx` exists in feature/task-16-ai-workers branch
+    - Verify default export of TechnologySelector function component
+    - If missing, copy from main branch to feature branch
+    - Ensure proper TypeScript types are maintained
+    - _Bug_Condition: isBugCondition(input) where input.branch = 'feature/task-16-ai-workers' AND input.importPath = '@/components/learning/TechnologySelector' AND fileExists(input.importPath, input.branch) = false_
+    - _Expected_Behavior: Vercel build successfully resolves TechnologySelector import and completes build without MODULE_NOT_FOUND errors_
+    - _Preservation: Main branch builds and existing TechnologySelector functionality continue to work without modification_
+    - _Requirements: 1.8, 2.8, 3.1, 3.2, 3.4_
+
+  - [x] 3.6 Verify bug condition exploration test now passes
+    - **Property 1: Expected Behavior** - Module Resolution Success
+    - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
+    - The test from task 1 encodes the expected behavior
+    - When this test passes, it confirms the expected behavior is satisfied
+    - Run bug condition exploration test from step 1
+    - Verify all feature branches (tasks 9-16) now build successfully
+    - Verify no "Module not found" errors occur for any of the previously failing imports
+    - **EXPECTED OUTCOME**: Test PASSES (confirms bug is fixed)
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8_
+
+  - [x] 3.7 Verify preservation tests still pass
+    - **Property 2: Preservation** - Existing Build Success
+    - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
+    - Run preservation property tests from step 2
+    - Verify main branch still builds successfully
+    - Verify unaffected feature branches still build successfully
+    - Verify existing component imports still resolve correctly
+    - Verify TypeScript type checking still passes
+    - Verify Next.js module resolution still works for existing @/ aliases
+    - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions)
+    - Confirm all tests still pass after fix (no regressions)
+
+- [x] 4. Checkpoint - Ensure all tests pass
+  - Verify all bug condition exploration tests pass (all feature branches build successfully)
+  - Verify all preservation tests pass (main branch and unaffected branches still work)
+  - Trigger Vercel builds for each affected feature branch to confirm deployment success
+  - Document any remaining issues or edge cases discovered
+  - Ask the user if questions arise

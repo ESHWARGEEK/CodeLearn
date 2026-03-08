@@ -3,10 +3,50 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createProject } from '@/lib/db/projects';
-import { putObject } from '@/lib/storage/s3';
 import { deployProject } from '@/lib/deployment/project-deployer';
 import JSZip from 'jszip';
+
+// Mock the database and storage modules
+vi.mock('@/lib/db/projects', () => {
+  const projects = new Map();
+  
+  return {
+    createProject: vi.fn().mockImplementation(async (projectId: string, userId: string, data: any) => {
+      const project = {
+        PK: `PROJECT#${projectId}`,
+        SK: `USER#${userId}`,
+        name: data.name,
+        technology: data.technology,
+        type: data.type,
+        status: 'active',
+        progress: 0,
+        codeS3Key: `${userId}/${projectId}/code.zip`,
+        githubSourceUrl: data.githubSourceUrl,
+        createdAt: Math.floor(Date.now() / 1000),
+        updatedAt: Math.floor(Date.now() / 1000),
+      };
+      projects.set(`${projectId}#${userId}`, project);
+      return project;
+    }),
+    getProjectByUser: vi.fn().mockImplementation(async (projectId: string, userId: string) => {
+      return projects.get(`${projectId}#${userId}`) || null;
+    }),
+    updateProjectDeployment: vi.fn().mockResolvedValue(undefined),
+  };
+});
+
+vi.mock('@/lib/storage/s3', () => {
+  const storage = new Map();
+  
+  return {
+    putObject: vi.fn().mockImplementation(async (key: string, data: Buffer) => {
+      storage.set(key, data);
+    }),
+    getObject: vi.fn().mockImplementation(async (key: string) => {
+      return storage.get(key) || null;
+    }),
+  };
+});
 
 // Mock external services
 vi.mock('@/lib/deployment/netlify-client', () => ({
@@ -41,6 +81,10 @@ describe('Netlify Deployment Integration', () => {
   });
 
   it('should deploy a complete project end-to-end', async () => {
+    // Import mocked functions
+    const { createProject } = await import('@/lib/db/projects');
+    const { putObject } = await import('@/lib/storage/s3');
+
     // 1. Create a project
     const project = await createProject(projectId, userId, {
       name: 'Test React App',
@@ -101,6 +145,9 @@ describe('Netlify Deployment Integration', () => {
   }, 30000); // 30 second timeout for integration test
 
   it('should handle deployment of Next.js project', async () => {
+    const { createProject } = await import('@/lib/db/projects');
+    const { putObject } = await import('@/lib/storage/s3');
+    
     const nextProjectId = 'next-project-' + Date.now();
 
     // Create Next.js project
@@ -145,6 +192,9 @@ describe('Netlify Deployment Integration', () => {
   }, 30000);
 
   it('should handle deployment of Vue.js project', async () => {
+    const { createProject } = await import('@/lib/db/projects');
+    const { putObject } = await import('@/lib/storage/s3');
+    
     const vueProjectId = 'vue-project-' + Date.now();
 
     // Create Vue.js project
@@ -188,6 +238,9 @@ describe('Netlify Deployment Integration', () => {
   }, 30000);
 
   it('should handle deployment of static HTML project', async () => {
+    const { createProject } = await import('@/lib/db/projects');
+    const { putObject } = await import('@/lib/storage/s3');
+    
     const staticProjectId = 'static-project-' + Date.now();
 
     // Create static project
@@ -234,6 +287,8 @@ describe('Netlify Deployment Integration', () => {
   });
 
   it('should fail gracefully when project code is missing', async () => {
+    const { createProject } = await import('@/lib/db/projects');
+    
     const emptyProjectId = 'empty-project-' + Date.now();
 
     // Create project but don't upload code
@@ -253,6 +308,9 @@ describe('Netlify Deployment Integration', () => {
   });
 
   it('should handle site name sanitization', async () => {
+    const { createProject } = await import('@/lib/db/projects');
+    const { putObject } = await import('@/lib/storage/s3');
+    
     const specialProjectId = 'special-project-' + Date.now();
 
     // Create project with special characters in name
