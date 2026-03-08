@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDeployedProjectsByUser } from '@/lib/db/projects';
-import { PortfolioProject, PortfolioData, PortfolioFilters } from '@/types/portfolio';
+import { getPortfolioSettings } from '@/lib/db/portfolio-settings';
+import { getUserProfile } from '@/lib/db/users';
+import { PortfolioProject, PublicPortfolioData, PortfolioFilters } from '@/types/portfolio';
 
 export async function GET(
   request: NextRequest,
@@ -24,11 +26,42 @@ export async function GET(
       );
     }
 
+    // Get portfolio settings to check if public
+    const settings = await getPortfolioSettings(userId);
+    
+    if (!settings.isPublic) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'PORTFOLIO_PRIVATE',
+            message: 'This portfolio is private',
+          },
+        },
+        { status: 403 }
+      );
+    }
+
+    // Get user profile for public display
+    const userProfile = await getUserProfile(userId);
+    if (!userProfile) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'USER_NOT_FOUND',
+            message: 'User not found',
+          },
+        },
+        { status: 404 }
+      );
+    }
+
     // Parse query parameters for filtering and sorting
     const filters: PortfolioFilters = {
       search: searchParams.get('search') || undefined,
       technology: searchParams.get('technology') || undefined,
-      status: (searchParams.get('status') as 'all' | 'completed') || 'all',
+      status: 'completed', // Only show completed projects in public view
       dateRange: (searchParams.get('dateRange') as 'all' | 'last-week' | 'last-month' | 'last-year') || 'all',
       sortBy: (searchParams.get('sortBy') as 'newest' | 'oldest' | 'name' | 'technology' | 'completion-date') || 'newest',
       sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc',
@@ -46,7 +79,7 @@ export async function GET(
       description: generateProjectDescription(project.name, project.technology),
       technology: project.technology,
       techStack: generateTechStack(project.technology),
-      githubUrl: project.githubSourceUrl || '',
+      githubUrl: settings.showGithubLinks ? (project.githubSourceUrl || '') : '',
       deploymentUrl: project.deploymentUrl || '',
       deploymentPlatform: project.deploymentPlatform || 'vercel',
       deployedAt: project.deployedAt || project.updatedAt,
@@ -59,24 +92,30 @@ export async function GET(
     // Apply filtering and sorting
     portfolioProjects = applyFiltersAndSorting(portfolioProjects, filters);
 
-    const portfolioData: PortfolioData = {
+    const publicPortfolioData: PublicPortfolioData = {
       projects: portfolioProjects,
       total: portfolioProjects.length,
+      user: {
+        name: userProfile.name,
+        avatar: userProfile.avatarUrl,
+        bio: settings.customDescription,
+      },
+      settings,
     };
 
     return NextResponse.json({
       success: true,
-      data: portfolioData,
+      data: publicPortfolioData,
     });
   } catch (error) {
-    console.error('Portfolio API error:', error);
+    console.error('Public portfolio API error:', error);
 
     return NextResponse.json(
       {
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
-          message: 'Failed to fetch portfolio data',
+          message: 'Failed to fetch public portfolio data',
         },
       },
       { status: 500 }

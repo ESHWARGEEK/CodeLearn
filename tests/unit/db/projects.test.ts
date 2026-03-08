@@ -439,7 +439,7 @@ describe('Projects Database Operations', () => {
 });
 
   describe('getDeployedProjectsByUser', () => {
-    it('should return only projects with deployment URLs', async () => {
+    it('should return only completed projects with deployment URLs', async () => {
       const mockProjects: Project[] = [
         {
           PK: 'PROJECT#proj-123',
@@ -483,6 +483,19 @@ describe('Projects Database Operations', () => {
           createdAt: 1709251200,
           updatedAt: 1709424000,
         },
+        {
+          PK: 'PROJECT#proj-999',
+          SK: 'USER#user-456',
+          name: 'Completed But Not Deployed',
+          technology: 'react',
+          type: 'learning',
+          status: 'completed',
+          progress: 100,
+          codeS3Key: 'user-456/proj-999/code.zip',
+          createdAt: 1709251200,
+          updatedAt: 1709337600,
+          completedAt: 1709337600,
+        },
       ];
 
       const mockQueryItems = vi.mocked(dynamodb.queryItems);
@@ -492,7 +505,9 @@ describe('Projects Database Operations', () => {
 
       expect(result).toHaveLength(2);
       expect(result[0].deploymentUrl).toBe('https://deployed.vercel.app');
+      expect(result[0].status).toBe('completed');
       expect(result[1].deploymentUrl).toBe('https://another.netlify.app');
+      expect(result[1].status).toBe('completed');
     });
 
     it('should return empty array when no projects are deployed', async () => {
@@ -508,6 +523,31 @@ describe('Projects Database Operations', () => {
           codeS3Key: 'user-456/proj-123/code.zip',
           createdAt: 1709251200,
           updatedAt: 1709337600,
+        },
+      ];
+
+      const mockQueryItems = vi.mocked(dynamodb.queryItems);
+      mockQueryItems.mockResolvedValue(mockProjects);
+
+      const result = await getDeployedProjectsByUser('user-456');
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('should exclude completed projects without deployment URLs', async () => {
+      const mockProjects: Project[] = [
+        {
+          PK: 'PROJECT#proj-123',
+          SK: 'USER#user-456',
+          name: 'Completed But Not Deployed',
+          technology: 'react',
+          type: 'learning',
+          status: 'completed',
+          progress: 100,
+          codeS3Key: 'user-456/proj-123/code.zip',
+          createdAt: 1709251200,
+          updatedAt: 1709337600,
+          completedAt: 1709337600,
         },
       ];
 
