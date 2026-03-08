@@ -1,0 +1,32 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--legacy-peer-deps"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Redirect rules for Next.js
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+# Environment variables (set these in Netlify dashboard)
+# AWS_REGION
+# AWS_ACCESS_KEY_ID
+# AWS_SECRET_ACCESS_KEY
+# NEXT_PUBLIC_COGNITO_USER_POOL_ID
+# NEXT_PUBLIC_COGNITO_CLIENT_ID
+# COGNITO_CLIENT_SECRET
+# BEDROCK_MODEL_ID
+# STRIPE_SECRET_KEY (if using payments)
+# STRIPE_WEBHOOK_SECRET
+# NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
