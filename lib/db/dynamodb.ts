@@ -10,7 +10,8 @@ export async function getUsageStats(userId: string) {
 export const TABLES = {
   PROJECTS: 'stub-projects-table',
   LEARNING_PATHS: 'stub-learning-paths-table',
-  USERS: 'stub-users-table'
+  USERS: 'stub-users-table',
+  TEMPLATES: 'stub-templates-table'
 };
 
 export async function putItem(tableName: string, item: Record<string, unknown>) {
