@@ -156,7 +156,7 @@ export default function PublicPortfolioPage({ params }: PublicPortfolioPageProps
               )}
               <div>
                 <h1 className="text-3xl font-bold text-white mb-2">
-                  {portfolioData.user.name}'s Portfolio
+                  {portfolioData.user.name}&apos;s Portfolio
                 </h1>
                 <p className="text-gray-400">
                   {portfolioData.user.bio || 'Showcasing completed projects and live demos'}
