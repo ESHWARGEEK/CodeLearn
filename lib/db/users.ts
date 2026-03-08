@@ -15,6 +15,8 @@ export interface User {
   avatarUrl?: string;
   provider: 'github' | 'google' | 'email';
   tier: 'free' | 'pro' | 'team';
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
   createdAt: number;       // Unix timestamp
   lastLoginAt: number;
   preferences: {
@@ -96,7 +98,9 @@ export async function updateUserLastLogin(userId: string): Promise<void> {
  */
 export async function updateUserTier(
   userId: string,
-  tier: User['tier']
+  tier: User['tier'],
+  stripeCustomerId?: string | null,
+  stripeSubscriptionId?: string | null
 ): Promise<void> {
   const user = await getUser(userId);
   if (!user) {
@@ -106,9 +110,47 @@ export async function updateUserTier(
   const updatedUser: User = {
     ...user,
     tier,
+    stripeCustomerId: stripeCustomerId || user.stripeCustomerId,
+    stripeSubscriptionId: stripeSubscriptionId || user.stripeSubscriptionId,
   };
 
+  // Clear Stripe references when downgrading to free
+  if (tier === 'free' && stripeCustomerId === null && stripeSubscriptionId === null) {
+    updatedUser.stripeCustomerId = undefined;
+    updatedUser.stripeSubscriptionId = undefined;
+  }
+
   await putItem(TABLES.USERS, updatedUser as unknown as Record<string, unknown>);
+  
+  console.log(`User tier updated: ${userId} -> ${tier}`, {
+    userId,
+    previousTier: user.tier,
+    newTier: tier,
+    stripeCustomerId: updatedUser.stripeCustomerId,
+    stripeSubscriptionId: updatedUser.stripeSubscriptionId
+  });
+}
+
+/**
+ * Get a user by Stripe customer ID
+ */
+export async function getUserByStripeCustomerId(stripeCustomerId: string): Promise<User | null> {
+  // Since we don't have a GSI on stripeCustomerId, we'll need to scan
+  // In production, consider adding a GSI for this lookup
+  try {
+    const { scanItems } = await import('./dynamodb');
+    const items = await scanItems(TABLES.USERS, {
+      FilterExpression: 'stripeCustomerId = :customerId',
+      ExpressionAttributeValues: {
+        ':customerId': stripeCustomerId
+      }
+    });
+
+    return items.length > 0 ? (items[0] as User) : null;
+  } catch (error) {
+    console.error('Error getting user by Stripe customer ID:', error);
+    return null;
+  }
 }
 
 /**

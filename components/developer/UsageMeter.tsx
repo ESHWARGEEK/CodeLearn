@@ -290,7 +290,7 @@ export default function UsageMeter({ userId, showUpgradeCTA = true, compact = fa
               <span className="text-yellow-400 font-medium text-sm">Usage Warning</span>
             </div>
             <p className="text-yellow-300 text-xs">
-              You're approaching your monthly limits. Consider upgrading to avoid interruptions.
+              You&apos;re approaching your monthly limits. Consider upgrading to avoid interruptions.
             </p>
           </div>
         )}

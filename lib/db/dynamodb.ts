@@ -28,9 +28,23 @@ export async function getItem(tableName: string, key: Record<string, unknown>) {
 
 export async function queryItems(
   tableName: string,
-  keyCondition: string,
-  expressionAttributeValues: Record<string, unknown>,
-  indexName?: string
+  params: {
+    IndexName?: string;
+    KeyConditionExpression?: string;
+    FilterExpression?: string;
+    ExpressionAttributeValues?: Record<string, unknown>;
+  }
+) {
+  // Stub implementation
+  return [];
+}
+
+export async function scanItems(
+  tableName: string,
+  params: {
+    FilterExpression?: string;
+    ExpressionAttributeValues?: Record<string, unknown>;
+  }
 ) {
   // Stub implementation
   return [];

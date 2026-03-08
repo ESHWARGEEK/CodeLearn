@@ -205,12 +205,12 @@ This document tracks the implementation of the CodeLearn AI Learning & Developer
 **Status:** [ ] Not started  
 **Branch:** feature/task-15-payments
 
-- [ ] 15.1 Integrate Stripe API
-- [ ] 15.2 Create pricing page
-- [ ] 15.3 Implement checkout flow
-- [ ] 15.4 Add webhook handler for payment events
-- [ ] 15.5 Update user tier on payment
-- [ ] 15.6 Implement subscription management
+- [x] 15.1 Integrate Stripe API
+- [x] 15.2 Create pricing page
+- [x] 15.3 Implement checkout flow
+- [x] 15.4 Add webhook handler for payment events
+- [x] 15.5 Update user tier on payment
+- [x] 15.6 Implement subscription management
 
 ---
 
