@@ -11,7 +11,9 @@ export const TABLES = {
   PROJECTS: 'stub-projects-table',
   LEARNING_PATHS: 'stub-learning-paths-table',
   USERS: 'stub-users-table',
-  TEMPLATES: 'stub-templates-table'
+  TEMPLATES: 'stub-templates-table',
+  INTEGRATIONS: 'stub-integrations-table',
+  JOBS: 'stub-jobs-table'
 };
 
 export async function putItem(tableName: string, item: Record<string, unknown>) {
