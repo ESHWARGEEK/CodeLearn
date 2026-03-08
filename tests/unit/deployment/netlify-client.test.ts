@@ -26,12 +26,6 @@ describe('Netlify Client', () => {
       expect(isNetlifyConfigured()).toBe(true);
     });
 
-  describe('isNetlifyConfigured', () => {
-    it('should return true when NETLIFY_TOKEN is set', () => {
-      process.env.NETLIFY_TOKEN = 'test-token';
-      expect(isNetlifyConfigured()).toBe(true);
-    });
-
     it('should return false when NETLIFY_TOKEN is not set', () => {
       delete process.env.NETLIFY_TOKEN;
       expect(isNetlifyConfigured()).toBe(false);
